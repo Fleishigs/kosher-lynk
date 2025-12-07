@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Kosher Communications</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="admin-login">
+        <div class="login-box">
+            <h1>Admin Login</h1>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="admin-email">Email</label>
+                    <input type="email" id="admin-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" required>
+                </div>
+                <button type="submit" class="btn-primary">Login</button>
+            </form>
+            <div id="login-error" class="error-message"></div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="admin-dashboard" style="display: none;">
+        <nav class="admin-nav">
+            <div class="nav-container">
+                <span class="logo">KC Admin</span>
+                <button id="logout-btn" class="btn-secondary">Logout</button>
+            </div>
+        </nav>
+
+        <main class="admin-main">
+            <div class="container">
+                <div class="admin-header">
+                    <h1>Product Management</h1>
+                    <button id="add-product-btn" class="btn-primary">Add New Product</button>
+                </div>
+
+                <div id="products-table" class="products-table">
+                    <!-- Products table loaded dynamically -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div id="product-form-modal" class="modal">
+        <div class="modal-content modal-large">
+            <button class="modal-close">&times;</button>
+            <h2 id="modal-title">Add Product</h2>
+            <form id="product-form">
+                <input type="hidden" id="product-id">
+                
+                <div class="form-group">
+                    <label for="product-name">Product Name</label>
+                    <input type="text" id="product-name" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="product-price">Price ($)</label>
+                        <input type="number" id="product-price" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-stock">Stock</label>
+                        <input type="number" id="product-stock" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="product-category">Category</label>
+                    <select id="product-category" required>
+                        <option value="basic">Basic</option>
+                        <option value="flip">Flip</option>
+                        <option value="feature">Feature</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="product-description">Description</label>
+                    <textarea id="product-description" rows="4" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="product-features">Features (one per line)</label>
+                    <textarea id="product-features" rows="4" placeholder="Long battery life&#10;Durable build&#10;Simple interface"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="product-image">Image URL</label>
+                    <input type="url" id="product-image" required>
+                    <small>Paste image URL or upload to an image host</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeProductModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

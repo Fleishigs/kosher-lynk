@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kosher Communications - Intentional Technology</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="index.html" class="logo">KC</a>
+            <div class="nav-links">
+                <a href="products.html">Products</a>
+                <a href="contact.html">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Technology that respects your time</h1>
+                <p>We believe communication shouldn't come with compromise. Simple phones for those who choose presence over distraction.</p>
+                <a href="products.html" class="btn-primary">View Phones</a>
+            </div>
+        </section>
+
+        <section class="statement">
+            <div class="container-narrow">
+                <h2>Less is intentional</h2>
+                <p>Every phone we offer strips away the noise. No social media. No endless apps. No designed addiction. Just reliable communication that lets you live your life on your terms.</p>
+            </div>
+        </section>
+
+        <section class="values">
+            <div class="container">
+                <div class="value-card">
+                    <h3>Reliable</h3>
+                    <p>Long battery life. Durable hardware. Phones that work when you need them.</p>
+                </div>
+                <div class="value-card">
+                    <h3>Clean</h3>
+                    <p>No internet. No browser. No backdoors to distraction.</p>
+                </div>
+                <div class="value-card">
+                    <h3>Safe</h3>
+                    <p>Trusted by families, communities, and anyone seeking digital boundaries.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="featured">
+            <div class="container">
+                <h2>Featured Devices</h2>
+                <div id="featured-grid" class="product-grid">
+                    <!-- Products loaded from Supabase -->
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="container-narrow">
+                <h2>Ready to disconnect?</h2>
+                <p>Browse our selection of simple, reliable phones.</p>
+                <a href="products.html" class="btn-secondary">Explore Products</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="logo">KC</span>
+                    <p>Kosher Communications</p>
+                </div>
+                <div class="footer-links">
+                    <a href="products.html">Products</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
