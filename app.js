@@ -16,7 +16,7 @@ async function loadFeaturedProducts() {
         if (data && data.length > 0) {
             grid.innerHTML = data.map(product => createProductCard(product)).join('');
         } else {
-            grid.innerHTML = '<p style="text-align: center; color: var(--color-text-light);">No products available yet.</p>';
+            grid.innerHTML = '<p style="text-align: center; color: var(--text-light); grid-column: 1 / -1;">No products available yet.</p>';
         }
     } catch (error) {
         console.error('Error loading products:', error);
@@ -29,7 +29,7 @@ function createProductCard(product) {
             <img src="${product.image_url}" alt="${product.name}" class="product-image">
             <div class="product-info">
                 <h3 class="product-name">${product.name}</h3>
-                <p class="product-description">${truncateText(product.description, 100)}</p>
+                <p class="product-description">${truncateText(product.description, 80)}</p>
                 <div class="product-price">$${product.price.toFixed(2)}</div>
                 <div class="product-stock">${product.stock} in stock</div>
             </div>

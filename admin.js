@@ -60,7 +60,7 @@ async function loadProductsTable() {
         const tableContainer = document.getElementById('products-table');
         
         if (!data || data.length === 0) {
-            tableContainer.innerHTML = '<p style="padding: 2rem; text-align: center;">No products yet. Add your first product!</p>';
+            tableContainer.innerHTML = '<p style="padding: 3rem; text-align: center; color: var(--text-light);">No products yet. Add your first product!</p>';
             return;
         }
         
@@ -80,10 +80,10 @@ async function loadProductsTable() {
                     ${data.map(product => `
                         <tr>
                             <td><img src="${product.image_url}" alt="${product.name}"></td>
-                            <td>${product.name}</td>
+                            <td><strong>${product.name}</strong></td>
                             <td>$${product.price.toFixed(2)}</td>
                             <td>${product.stock}</td>
-                            <td>${product.category}</td>
+                            <td><span style="text-transform: capitalize;">${product.category}</span></td>
                             <td>
                                 <button class="edit-btn" onclick="editProduct(${product.id})">Edit</button>
                                 <button class="delete-btn" onclick="deleteProduct(${product.id})">Delete</button>
@@ -110,6 +110,8 @@ document.getElementById('add-product-btn').addEventListener('click', () => {
 document.querySelectorAll('.modal-close').forEach(btn => {
     btn.addEventListener('click', closeProductModal);
 });
+
+document.querySelector('#product-form-modal .modal-overlay').addEventListener('click', closeProductModal);
 
 function closeProductModal() {
     document.getElementById('product-form-modal').classList.remove('active');

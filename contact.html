@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact - Kosher Communications</title>
+    <title>Contact - KosherLynk</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <nav class="nav">
         <div class="nav-container">
-            <a href="index.html" class="logo">KC</a>
+            <a href="index.html" class="logo">
+                <svg viewBox="0 0 40 40" class="logo-icon">
+                    <rect x="8" y="5" width="24" height="30" rx="4" fill="currentColor"/>
+                    <rect x="12" y="9" width="16" height="18" rx="2" fill="white"/>
+                    <circle cx="20" cy="31" r="2" fill="white"/>
+                </svg>
+                <span>KosherLynk</span>
+            </a>
             <div class="nav-links">
                 <a href="products.html">Products</a>
                 <a href="contact.html">Contact</a>
@@ -21,24 +28,26 @@
     </nav>
 
     <main>
-        <section class="page-header">
+        <section class="page-hero">
             <div class="container">
                 <h1>Get in Touch</h1>
-                <p>Questions about our phones? We're here to help.</p>
+                <p>Have questions? We're here to help</p>
             </div>
         </section>
 
         <section class="contact-section">
-            <div class="container-narrow">
+            <div class="container-small">
                 <form id="contact-form" class="contact-form">
-                    <div class="form-group">
-                        <label for="name">Name</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -51,7 +60,7 @@
                         <textarea id="message" name="message" rows="6" required></textarea>
                     </div>
 
-                    <button type="submit" class="btn-primary">Send Message</button>
+                    <button type="submit" class="btn btn-primary btn-large">Send Message</button>
                 </form>
 
                 <div id="form-status" class="form-status"></div>
@@ -63,13 +72,33 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-brand">
-                    <span class="logo">KC</span>
-                    <p>Kosher Communications</p>
+                    <div class="logo">
+                        <svg viewBox="0 0 40 40" class="logo-icon">
+                            <rect x="8" y="5" width="24" height="30" rx="4" fill="currentColor"/>
+                            <rect x="12" y="9" width="16" height="18" rx="2" fill="white"/>
+                            <circle cx="20" cy="31" r="2" fill="white"/>
+                        </svg>
+                        <span>KosherLynk</span>
+                    </div>
+                    <p>Simple phones for intentional living</p>
                 </div>
                 <div class="footer-links">
-                    <a href="products.html">Products</a>
-                    <a href="contact.html">Contact</a>
+                    <div class="footer-column">
+                        <h4>Product</h4>
+                        <a href="products.html">All Phones</a>
+                        <a href="products.html?filter=basic">Basic Phones</a>
+                        <a href="products.html?filter=flip">Flip Phones</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Support</h4>
+                        <a href="contact.html">Contact Us</a>
+                        <a href="#">FAQ</a>
+                        <a href="#">Shipping Info</a>
+                    </div>
                 </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 KosherLynk. All rights reserved.</p>
             </div>
         </div>
     </footer>

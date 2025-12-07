@@ -28,7 +28,7 @@ function displayProducts() {
     }
 
     if (filtered.length === 0) {
-        grid.innerHTML = '<p style="text-align: center; color: var(--color-text-light); grid-column: 1 / -1;">No products found.</p>';
+        grid.innerHTML = '<p style="text-align: center; color: var(--text-light); grid-column: 1 / -1;">No products found.</p>';
         return;
     }
 
@@ -39,7 +39,7 @@ function displayProducts() {
                 <img src="${product.image_url}" alt="${product.name}" class="product-image">
                 <div class="product-info">
                     <h3 class="product-name">${product.name}</h3>
-                    <p class="product-description">${truncateText(product.description, 100)}</p>
+                    <p class="product-description">${truncateText(product.description, 80)}</p>
                     <div class="product-price">$${product.price.toFixed(2)}</div>
                     <div class="product-stock">${outOfStock ? 'Out of Stock' : `${product.stock} in stock`}</div>
                 </div>
@@ -91,7 +91,7 @@ function openProductModal(productId) {
         
         <div class="product-stock">${outOfStock ? 'Out of Stock' : `${product.stock} available`}</div>
         
-        ${!outOfStock ? `<button class="btn-primary" onclick="checkoutProduct(${product.id})">Purchase</button>` : ''}
+        ${!outOfStock ? `<button class="btn btn-primary btn-large" onclick="checkoutProduct(${product.id})">Purchase Now</button>` : ''}
     `;
 
     modal.classList.add('active');
@@ -101,11 +101,9 @@ function closeProductModal() {
     document.getElementById('product-modal').classList.remove('active');
 }
 
-// Close modal on close button or outside click
+// Close modal handlers
 document.querySelector('.modal-close').addEventListener('click', closeProductModal);
-document.getElementById('product-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'product-modal') closeProductModal();
-});
+document.querySelector('.modal-overlay').addEventListener('click', closeProductModal);
 
 // Stripe Checkout
 async function checkoutProduct(productId) {
@@ -113,16 +111,10 @@ async function checkoutProduct(productId) {
     if (!product || !stripe) return;
 
     try {
-        // In production, this would call your backend to create a checkout session
-        // For now, we'll show a simple implementation
+        alert('Checkout functionality requires backend setup. Please contact us at the contact page to complete your purchase.');
         
-        // You'll need to set up Stripe on your backend to create checkout sessions
-        // This is a placeholder to show the structure
-        
-        alert('Checkout functionality requires backend setup. Please contact us at contact page to complete purchase.');
-        
-        // Backend endpoint would look like:
-        // const response = await fetch('/create-checkout-session', {
+        // Backend integration needed - example:
+        // const response = await fetch('/api/create-checkout', {
         //     method: 'POST',
         //     headers: { 'Content-Type': 'application/json' },
         //     body: JSON.stringify({ productId: product.id })
