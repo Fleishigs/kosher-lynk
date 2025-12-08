@@ -88,7 +88,7 @@ function displayProducts() {
             : [];
         
         return `
-            <a href="product.html?id=${product.id}" class="product-card">
+            <a href="/product?id=${product.id}" class="product-card">
                 <div class="product-image-container" ${images.length > 1 ? `data-images='${JSON.stringify(images)}'` : ''}>
                     <img src="${mainImage}" alt="${product.name}" class="product-image">
                     ${images.length > 1 ? '<div class="image-dots"></div>' : ''}

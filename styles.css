@@ -1410,14 +1410,16 @@ body {
 }
 
 .thumbnail {
+    width: 100%;
     aspect-ratio: 1;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: var(--radius);
     cursor: pointer;
     border: 3px solid var(--border);
     transition: var(--transition);
     padding: 0.5rem;
     background: white;
+    display: block;
 }
 
 .thumbnail:hover {

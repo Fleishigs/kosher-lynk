@@ -2,7 +2,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const productId = urlParams.get('id');
 
 if (!productId) {
-    window.location.href = 'products.html';
+    window.location.href = '/products';
 }
 
 let product = null;
@@ -18,7 +18,7 @@ async function loadProduct() {
     ]);
     
     if (productResult.error || !productResult.data) {
-        window.location.href = 'products.html';
+        window.location.href = '/products';
         return;
     }
     
