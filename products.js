@@ -111,20 +111,28 @@ async function checkoutProduct(productId) {
     if (!product || !stripe) return;
 
     try {
-        alert('Checkout functionality requires backend setup. Please contact us at the contact page to complete your purchase.');
+        const response = await fetch('/.netlify/functions/create-checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                productId: product.id,
+                productName: product.name,
+                productPrice: product.price,
+                productImage: product.image_url
+            })
+        });
+
+        const data = await response.json();
         
-        // Backend integration needed - example:
-        // const response = await fetch('/api/create-checkout', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ productId: product.id })
-        // });
-        // const { sessionId } = await response.json();
-        // await stripe.redirectToCheckout({ sessionId });
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        await stripe.redirectToCheckout({ sessionId: data.sessionId });
         
     } catch (error) {
         console.error('Checkout error:', error);
-        alert('Error processing checkout. Please try again.');
+        alert('Error processing checkout. Please try again or contact us.');
     }
 }
 
