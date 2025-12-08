@@ -87,7 +87,7 @@ function displayProduct() {
             <div class="product-price-large">$${product.price.toFixed(2)}</div>
             
             <div class="product-stock-info">
-                ${outOfStock ? '<span class="out-of-stock-badge">Out of Stock</span>' : `<span class="in-stock-badge">In Stock (${product.stock})</span>`}
+                ${outOfStock ? '<span class="out-of-stock-badge">Temporarily Unavailable</span>' : '<span class="in-stock-badge">In Stock</span>'}
             </div>
             
             <p class="product-description-full">${product.description}</p>
