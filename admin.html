@@ -66,9 +66,9 @@
                         <button id="add-product-btn" class="btn btn-primary">+ Add Product</button>
                     </div>
                     <div class="admin-toolbar">
-                        <input type="text" id="product-search" placeholder="Search..." class="search-input">
+                        <input type="text" id="product-search" placeholder="Search products..." class="search-input">
                         <select id="status-filter" class="filter-select">
-                            <option value="all">All</option>
+                            <option value="all">All Status</option>
                             <option value="active">Active</option>
                             <option value="draft">Draft</option>
                         </select>
@@ -106,15 +106,16 @@
             <form id="product-form">
                 <input type="hidden" id="product-id">
                 
+                <!-- Basic Info -->
                 <div class="form-section">
-                    <h3>Basic Info</h3>
+                    <h3>Basic Information</h3>
                     <div class="form-group">
-                        <label>Name *</label>
+                        <label>Product Name *</label>
                         <input type="text" id="product-name" required>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Price *</label>
+                            <label>Price ($) *</label>
                             <input type="number" id="product-price" step="0.01" required>
                         </div>
                         <div class="form-group">
@@ -135,53 +136,115 @@
                     </div>
                     <div class="form-group">
                         <label>Features (one per line)</label>
-                        <textarea id="product-features" rows="4"></textarea>
+                        <textarea id="product-features" rows="4" placeholder="Long battery life&#10;Durable build"></textarea>
                     </div>
                 </div>
 
+                <!-- Categories & Tags -->
                 <div class="form-section">
                     <h3>Categories & Tags</h3>
+                    
                     <div class="form-group">
-                        <label>Categories (hold Ctrl/Cmd for multiple)</label>
-                        <select id="product-categories" multiple style="height: 100px;"></select>
+                        <label>Categories</label>
+                        <div class="selector-container">
+                            <select id="category-selector" size="5">
+                                <!-- Populated dynamically -->
+                            </select>
+                            <div class="selector-buttons">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="addCategory()">Add →</button>
+                            </div>
+                            <div id="selected-categories" class="selected-items">
+                                <!-- Selected categories appear here -->
+                            </div>
+                        </div>
                     </div>
+
                     <div class="form-group">
                         <label>Tags</label>
-                        <select id="product-tags" multiple style="height: 100px;"></select>
-                        <div style="margin-top: 0.5rem;">
-                            <input type="text" id="new-tag" placeholder="Quick add tag..." style="width: 70%; display: inline-block;">
-                            <button type="button" class="btn btn-secondary" onclick="quickAddTag()" style="width: 28%; display: inline-block; margin-left: 2%;">Add</button>
+                        <div class="selector-container">
+                            <select id="tag-selector" size="5">
+                                <!-- Populated dynamically -->
+                            </select>
+                            <div class="selector-buttons">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="addTag()">Add →</button>
+                                <input type="text" id="new-tag-quick" placeholder="Or type new tag..." style="margin-top: 0.5rem; width: 100%;">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="quickAddTag()" style="margin-top: 0.25rem; width: 100%;">Create & Add</button>
+                            </div>
+                            <div id="selected-tags" class="selected-items">
+                                <!-- Selected tags appear here -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Images -->
                 <div class="form-section">
-                    <h3>Images</h3>
+                    <h3>Product Images</h3>
+                    <p class="help-text">Upload images one at a time. Click "Set as Primary" to choose which image shows first.</p>
+                    
                     <input type="file" id="image-upload" accept="image/*" style="display: none;">
                     <button type="button" class="btn btn-primary" onclick="document.getElementById('image-upload').click()">Upload Image</button>
-                    <small style="display: block; margin-top: 0.5rem;">Upload one at a time. First = main image.</small>
+                    
                     <div id="images-preview" class="images-preview-grid"></div>
                 </div>
 
+                <!-- SEO -->
                 <div class="form-section">
-                    <h3>SEO</h3>
+                    <h3>SEO Settings (Search Engine Optimization)</h3>
+                    <p class="help-text">Help your product appear in Google and other search engines</p>
+                    
                     <div class="form-group">
-                        <label>SEO Title (50-60 chars)</label>
+                        <label>SEO Title</label>
                         <input type="text" id="seo-title" maxlength="60">
+                        <div class="seo-help-box">
+                            <strong>What:</strong> The title that appears in Google search results<br>
+                            <strong>Why:</strong> A good title gets more clicks from Google<br>
+                            <strong>How Long:</strong> 50-60 characters (currently: <span id="title-count">0</span>)<br>
+                            <strong>Example:</strong> "Essential Basic Phone - Simple, No Distractions"<br>
+                            <strong>Tip:</strong> Leave empty to use product name
+                        </div>
                     </div>
+
                     <div class="form-group">
-                        <label>SEO Description (150-160 chars)</label>
-                        <textarea id="seo-description" rows="2" maxlength="160"></textarea>
+                        <label>SEO Description</label>
+                        <textarea id="seo-description" rows="3" maxlength="160"></textarea>
+                        <div class="seo-help-box">
+                            <strong>What:</strong> The preview text under your title in Google<br>
+                            <strong>Why:</strong> Tells people what to expect before clicking<br>
+                            <strong>How Long:</strong> 150-160 characters (currently: <span id="desc-count">0</span>)<br>
+                            <strong>Example:</strong> "Get back to basics with our simple phone. No internet, no apps, no distractions. Just reliable calls and texts. Perfect for digital detox."<br>
+                            <strong>Tip:</strong> Make it compelling to encourage clicks
+                        </div>
                     </div>
+
                     <div class="form-group">
-                        <label>Keywords (comma separated)</label>
-                        <input type="text" id="seo-keywords">
+                        <label>Keywords</label>
+                        <input type="text" id="seo-keywords" placeholder="basic phone, simple phone, dumb phone">
+                        <div class="seo-help-box">
+                            <strong>What:</strong> Words people search for to find this product<br>
+                            <strong>Why:</strong> Helps Google understand what your product is<br>
+                            <strong>How:</strong> Separate with commas, use 5-10 keywords<br>
+                            <strong>Example:</strong> "basic phone, simple phone, dumb phone, no internet phone, minimalist phone"<br>
+                            <strong>Tip:</strong> Think like a customer - what would they search for?
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>URL Slug</label>
+                        <input type="text" id="product-slug" placeholder="essential-basic-phone">
+                        <div class="seo-help-box">
+                            <strong>What:</strong> The URL-friendly version of your product name<br>
+                            <strong>Why:</strong> Makes clean, readable URLs (yoursite.com/essential-basic-phone)<br>
+                            <strong>How:</strong> Use lowercase letters and hyphens only, no spaces<br>
+                            <strong>Example:</strong> "essential-basic-phone" or "classic-flip-phone-black"<br>
+                            <strong>Tip:</strong> Leave empty to auto-generate from product name
+                        </div>
                     </div>
                 </div>
 
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" class="btn btn-primary btn-large">Save Product</button>
                 </div>
             </form>
         </div>
@@ -193,28 +256,26 @@
         <div class="modal-content modal-xl">
             <button class="modal-close" onclick="closeImageEditor()">&times;</button>
             <h2>Edit Image</h2>
-            <div class="image-editor-container">
-                <div class="cropper-wrapper">
-                    <img id="image-to-crop" style="max-width: 100%;">
-                </div>
-                <div class="editor-controls">
-                    <button type="button" class="btn btn-secondary" onclick="cropperRotate(-90)">Rotate Left</button>
-                    <button type="button" class="btn btn-secondary" onclick="cropperRotate(90)">Rotate Right</button>
-                    <button type="button" class="btn btn-secondary" onclick="cropperFlip('h')">Flip H</button>
-                    <button type="button" class="btn btn-secondary" onclick="cropperFlip('v')">Flip V</button>
-                    <button type="button" class="btn btn-secondary" onclick="cropperReset()">Reset</button>
-                </div>
-                <div class="editor-controls">
-                    <label>Aspect Ratio:</label>
-                    <button type="button" class="btn btn-secondary" onclick="cropperSetAspect('free')">Free</button>
-                    <button type="button" class="btn btn-secondary" onclick="cropperSetAspect(1)">1:1</button>
-                    <button type="button" class="btn btn-secondary" onclick="cropperSetAspect(4/3)">4:3</button>
-                    <button type="button" class="btn btn-secondary" onclick="cropperSetAspect(16/9)">16:9</button>
-                </div>
+            <div class="cropper-wrapper">
+                <img id="image-to-crop" style="max-width: 100%;">
+            </div>
+            <div class="editor-controls">
+                <button type="button" class="btn btn-secondary" onclick="cropperRotate(-90)">↺ Rotate Left</button>
+                <button type="button" class="btn btn-secondary" onclick="cropperRotate(90)">↻ Rotate Right</button>
+                <button type="button" class="btn btn-secondary" onclick="cropperFlip('h')">⇄ Flip H</button>
+                <button type="button" class="btn btn-secondary" onclick="cropperFlip('v')">⇅ Flip V</button>
+                <button type="button" class="btn btn-secondary" onclick="cropperReset()">Reset</button>
+            </div>
+            <div class="editor-controls">
+                <strong>Aspect Ratio:</strong>
+                <button type="button" class="btn btn-secondary" onclick="cropperSetAspect('free')">Free</button>
+                <button type="button" class="btn btn-secondary" onclick="cropperSetAspect(1)">Square (1:1)</button>
+                <button type="button" class="btn btn-secondary" onclick="cropperSetAspect(4/3)">4:3</button>
+                <button type="button" class="btn btn-secondary" onclick="cropperSetAspect(16/9)">16:9</button>
             </div>
             <div class="form-actions" style="margin-top: 2rem;">
                 <button type="button" class="btn btn-secondary" onclick="closeImageEditor()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveCroppedImage()">Save Image</button>
+                <button type="button" class="btn btn-primary btn-large" onclick="saveCroppedImage()">Save Image</button>
             </div>
         </div>
     </div>
@@ -228,7 +289,7 @@
             <form id="category-form">
                 <input type="hidden" id="category-id">
                 <div class="form-group">
-                    <label>Name</label>
+                    <label>Category Name</label>
                     <input type="text" id="category-name" required>
                 </div>
                 <div class="form-actions">
@@ -248,7 +309,7 @@
             <form id="tag-form">
                 <input type="hidden" id="tag-id">
                 <div class="form-group">
-                    <label>Name</label>
+                    <label>Tag Name</label>
                     <input type="text" id="tag-name" required>
                 </div>
                 <div class="form-actions">
