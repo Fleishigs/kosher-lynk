@@ -56,7 +56,8 @@ function displayProduct() {
     // Get features
     const features = product.features ? product.features.split('\n').filter(f => f.trim()) : [];
     
-    const outOfStock = product.stock <= 0;
+    // Check stock - if track_inventory is false, never out of stock
+    const outOfStock = product.track_inventory !== false && product.stock <= 0;
     
     document.getElementById('product-detail').innerHTML = `
         <div class="product-gallery">

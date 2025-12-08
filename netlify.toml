@@ -1,0 +1,6 @@
+[build]
+  functions = "netlify/functions"
+
+# Daily keep-alive to prevent Supabase from pausing
+[functions."keep-alive"]
+  schedule = "0 12 * * *"  # Runs at 12pm UTC every day

@@ -64,7 +64,10 @@
                 <div id="products-tab" class="tab-content active">
                     <div class="admin-header">
                         <div><h1>Products</h1></div>
-                        <button id="add-product-btn" class="btn btn-primary">+ Add Product</button>
+                        <div style="display: flex; gap: 0.75rem;">
+                            <button id="refresh-products-btn" class="btn btn-secondary">🔄 Refresh</button>
+                            <button id="add-product-btn" class="btn btn-primary">+ Add Product</button>
+                        </div>
                     </div>
                     <div class="admin-toolbar">
                         <input type="text" id="product-search" placeholder="Search products..." class="search-input">
@@ -84,6 +87,7 @@
                             <h1>Orders</h1>
                             <p>All customer purchases</p>
                         </div>
+                        <button id="refresh-orders-btn" class="btn btn-secondary">🔄 Refresh</button>
                     </div>
                     <div class="admin-toolbar">
                         <input type="text" id="order-search" placeholder="Search by email or name..." class="search-input">
@@ -142,6 +146,12 @@
                         <div class="form-group">
                             <label>Stock *</label>
                             <input type="number" id="product-stock" required>
+                            <div class="checkbox-group" style="margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                                    <input type="checkbox" id="track-inventory" checked>
+                                    <span>Track inventory (uncheck for unlimited stock)</span>
+                                </label>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Status</label>

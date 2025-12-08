@@ -544,6 +544,7 @@ document.getElementById('product-form').addEventListener('submit', async (e) => 
             name,
             price: parseFloat(document.getElementById('product-price').value),
             stock: parseInt(document.getElementById('product-stock').value),
+            track_inventory: document.getElementById('track-inventory').checked,
             status: document.getElementById('product-status').value,
             description: document.getElementById('product-description').value,
             features: document.getElementById('product-features').value,
@@ -586,6 +587,7 @@ async function editProduct(id) {
     document.getElementById('product-name').value = data.name;
     document.getElementById('product-price').value = data.price;
     document.getElementById('product-stock').value = data.stock;
+    document.getElementById('track-inventory').checked = data.track_inventory !== false; // Default true
     document.getElementById('product-status').value = data.status || 'active';
     document.getElementById('product-description').value = data.description;
     document.getElementById('product-features').value = data.features || '';
@@ -782,3 +784,22 @@ function viewOrderDetails(orderId) {
 document.getElementById('order-search')?.addEventListener('input', displayOrders);
 document.getElementById('order-date-filter')?.addEventListener('change', displayOrders);
 
+
+// REFRESH BUTTONS
+document.getElementById('refresh-products-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('refresh-products-btn');
+    btn.disabled = true;
+    btn.textContent = '⟳ Refreshing...';
+    await loadProductsTable();
+    btn.disabled = false;
+    btn.textContent = '🔄 Refresh';
+});
+
+document.getElementById('refresh-orders-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('refresh-orders-btn');
+    btn.disabled = true;
+    btn.textContent = '⟳ Refreshing...';
+    await loadOrdersTable();
+    btn.disabled = false;
+    btn.textContent = '🔄 Refresh';
+});

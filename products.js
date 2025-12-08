@@ -29,10 +29,12 @@ async function loadProducts() {
         .from('products')
         .select('*')
         .eq('status', 'active')
-        .gt('stock', 0)
         .order('created_at', { ascending: false });
     
-    allProducts = data || [];
+    // Filter to only show products with stock OR unlimited inventory
+    allProducts = (data || []).filter(p => 
+        p.stock > 0 || p.track_inventory === false
+    );
 }
 
 function createCategoryFilters() {
