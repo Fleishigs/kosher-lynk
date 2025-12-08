@@ -24,8 +24,11 @@ exports.handler = async (event) => {
         },
       ],
       mode: 'payment',
-      success_url: `${event.headers.origin || 'https://yoursite.netlify.app'}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${event.headers.origin || 'https://yoursite.netlify.app'}/products.html`,
+      success_url: `${event.headers.origin || 'https://kosherlynk.netlify.app'}/success`,
+      cancel_url: `${event.headers.origin || 'https://kosherlynk.netlify.app'}/products`,
+      metadata: {
+        productId: productId.toString()
+      }
     });
 
     return {
