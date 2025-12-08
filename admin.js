@@ -1,8 +1,10 @@
 let currentUser = null;
 let allCategories = [];
 let allTags = [];
+let allProducts = [];
+let uploadedImages = [];
 
-// Check if user is logged in on page load
+// Auth check
 supabase.auth.getSession().then(({ data: { session } }) => {
     if (session) {
         currentUser = session.user;
@@ -10,118 +12,86 @@ supabase.auth.getSession().then(({ data: { session } }) => {
     }
 });
 
-// Handle login
+// Login
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const email = document.getElementById('admin-email').value;
     const password = document.getElementById('admin-password').value;
     const errorDiv = document.getElementById('login-error');
     
     try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-        });
-        
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        
         currentUser = data.user;
         showDashboard();
-        
     } catch (error) {
-        errorDiv.textContent = 'Invalid credentials. Please try again.';
+        errorDiv.textContent = 'Invalid credentials';
         errorDiv.classList.add('show');
     }
 });
 
-// Handle logout
+// Logout
 document.getElementById('logout-btn').addEventListener('click', async () => {
     await supabase.auth.signOut();
-    currentUser = null;
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('admin-dashboard').style.display = 'none';
+    location.reload();
 });
 
 function showDashboard() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('admin-dashboard').style.display = 'block';
-    loadCategories();
-    loadTags();
-    loadProductsTable();
+    loadAll();
 }
 
-// ============ TAB SWITCHING ============
+async function loadAll() {
+    await loadCategories();
+    await loadTags();
+    await loadProductsTable();
+}
+
+// ========== TABS ==========
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const tab = btn.dataset.tab;
-        
-        // Update active tab button
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        
-        // Update active tab content
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.getElementById(`${tab}-tab`).classList.add('active');
         
-        // Load data for the tab
         if (tab === 'products') loadProductsTable();
         if (tab === 'categories') loadCategoriesTable();
         if (tab === 'tags') loadTagsTable();
     });
 });
 
-// ============ CATEGORIES ============
+// ========== CATEGORIES ==========
 async function loadCategories() {
-    try {
-        const { data, error } = await supabase
-            .from('categories')
-            .select('*')
-            .order('name');
-        
-        if (error) throw error;
-        allCategories = data || [];
-    } catch (error) {
-        console.error('Error loading categories:', error);
-    }
+    const { data, error } = await supabase.from('categories').select('*').order('name');
+    if (error) console.error(error);
+    allCategories = data || [];
 }
 
 async function loadCategoriesTable() {
-    try {
-        await loadCategories();
-        const tableContainer = document.getElementById('categories-table');
-        
-        if (allCategories.length === 0) {
-            tableContainer.innerHTML = '<p style="padding: 3rem; text-align: center;">No categories yet. Add your first category!</p>';
-            return;
-        }
-        
-        tableContainer.innerHTML = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Slug</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${allCategories.map(cat => `
-                        <tr>
-                            <td><strong>${cat.name}</strong></td>
-                            <td>${cat.slug}</td>
-                            <td>
-                                <button class="edit-btn" onclick="editCategory(${cat.id})">Edit</button>
-                                <button class="delete-btn" onclick="deleteCategory(${cat.id})">Delete</button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-    } catch (error) {
-        console.error('Error loading categories table:', error);
+    await loadCategories();
+    const table = document.getElementById('categories-table');
+    
+    if (allCategories.length === 0) {
+        table.innerHTML = '<p style="padding: 3rem; text-align: center;">No categories yet</p>';
+        return;
     }
+    
+    table.innerHTML = `<table>
+        <thead><tr><th>Name</th><th>Slug</th><th>Actions</th></tr></thead>
+        <tbody>
+            ${allCategories.map(cat => `<tr>
+                <td><strong>${cat.name}</strong></td>
+                <td>${cat.slug}</td>
+                <td>
+                    <button class="edit-btn" onclick="editCategory(${cat.id})">Edit</button>
+                    <button class="delete-btn" onclick="deleteCategory(${cat.id})">Delete</button>
+                </td>
+            </tr>`).join('')}
+        </tbody>
+    </table>`;
 }
 
 document.getElementById('add-category-btn').addEventListener('click', () => {
@@ -133,120 +103,74 @@ document.getElementById('add-category-btn').addEventListener('click', () => {
 
 document.getElementById('category-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    const categoryId = document.getElementById('category-id').value;
+    const id = document.getElementById('category-id').value;
     const name = document.getElementById('category-name').value;
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     
     try {
-        if (categoryId) {
-            const { error } = await supabase
-                .from('categories')
-                .update({ name, slug })
-                .eq('id', categoryId);
-            if (error) throw error;
+        if (id) {
+            await supabase.from('categories').update({ name, slug }).eq('id', id);
         } else {
-            const { error } = await supabase
-                .from('categories')
-                .insert([{ name, slug }]);
-            if (error) throw error;
+            await supabase.from('categories').insert([{ name, slug }]);
         }
-        
         closeCategoryModal();
         loadCategories();
         loadCategoriesTable();
-        alert(categoryId ? 'Category updated!' : 'Category added!');
+        alert(id ? 'Updated!' : 'Added!');
     } catch (error) {
-        console.error('Error saving category:', error);
         alert('Error: ' + error.message);
     }
 });
 
 async function editCategory(id) {
-    const category = allCategories.find(c => c.id === id);
-    if (!category) return;
-    
+    const cat = allCategories.find(c => c.id === id);
+    if (!cat) return;
     document.getElementById('category-modal-title').textContent = 'Edit Category';
-    document.getElementById('category-id').value = category.id;
-    document.getElementById('category-name').value = category.name;
+    document.getElementById('category-id').value = cat.id;
+    document.getElementById('category-name').value = cat.name;
     document.getElementById('category-modal').classList.add('active');
 }
 
 async function deleteCategory(id) {
-    if (!confirm('Delete this category? Products using it will need a new category.')) return;
-    
-    try {
-        const { error } = await supabase
-            .from('categories')
-            .delete()
-            .eq('id', id);
-        
-        if (error) throw error;
-        
-        loadCategories();
-        loadCategoriesTable();
-        alert('Category deleted!');
-    } catch (error) {
-        console.error('Error deleting category:', error);
-        alert('Error: ' + error.message);
-    }
+    if (!confirm('Delete this category?')) return;
+    await supabase.from('categories').delete().eq('id', id);
+    loadCategories();
+    loadCategoriesTable();
 }
 
 function closeCategoryModal() {
     document.getElementById('category-modal').classList.remove('active');
 }
 
-// ============ TAGS ============
+// ========== TAGS ==========
 async function loadTags() {
-    try {
-        const { data, error} = await supabase
-            .from('tags')
-            .select('*')
-            .order('name');
-        
-        if (error) throw error;
-        allTags = data || [];
-    } catch (error) {
-        console.error('Error loading tags:', error);
-    }
+    const { data, error } = await supabase.from('tags').select('*').order('name');
+    if (error) console.error(error);
+    allTags = data || [];
 }
 
 async function loadTagsTable() {
-    try {
-        await loadTags();
-        const tableContainer = document.getElementById('tags-table');
-        
-        if (allTags.length === 0) {
-            tableContainer.innerHTML = '<p style="padding: 3rem; text-align: center;">No tags yet. Add your first tag!</p>';
-            return;
-        }
-        
-        tableContainer.innerHTML = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Slug</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${allTags.map(tag => `
-                        <tr>
-                            <td><strong>${tag.name}</strong></td>
-                            <td>${tag.slug}</td>
-                            <td>
-                                <button class="edit-btn" onclick="editTag(${tag.id})">Edit</button>
-                                <button class="delete-btn" onclick="deleteTag(${tag.id})">Delete</button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-    } catch (error) {
-        console.error('Error loading tags table:', error);
+    await loadTags();
+    const table = document.getElementById('tags-table');
+    
+    if (allTags.length === 0) {
+        table.innerHTML = '<p style="padding: 3rem; text-align: center;">No tags yet</p>';
+        return;
     }
+    
+    table.innerHTML = `<table>
+        <thead><tr><th>Name</th><th>Slug</th><th>Actions</th></tr></thead>
+        <tbody>
+            ${allTags.map(tag => `<tr>
+                <td><strong>${tag.name}</strong></td>
+                <td>${tag.slug}</td>
+                <td>
+                    <button class="edit-btn" onclick="editTag(${tag.id})">Edit</button>
+                    <button class="delete-btn" onclick="deleteTag(${tag.id})">Delete</button>
+                </td>
+            </tr>`).join('')}
+        </tbody>
+    </table>`;
 }
 
 document.getElementById('add-tag-btn').addEventListener('click', () => {
@@ -258,31 +182,21 @@ document.getElementById('add-tag-btn').addEventListener('click', () => {
 
 document.getElementById('tag-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    const tagId = document.getElementById('tag-id').value;
+    const id = document.getElementById('tag-id').value;
     const name = document.getElementById('tag-name').value;
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     
     try {
-        if (tagId) {
-            const { error } = await supabase
-                .from('tags')
-                .update({ name, slug })
-                .eq('id', tagId);
-            if (error) throw error;
+        if (id) {
+            await supabase.from('tags').update({ name, slug }).eq('id', id);
         } else {
-            const { error } = await supabase
-                .from('tags')
-                .insert([{ name, slug }]);
-            if (error) throw error;
+            await supabase.from('tags').insert([{ name, slug }]);
         }
-        
         closeTagModal();
         loadTags();
         loadTagsTable();
-        alert(tagId ? 'Tag updated!' : 'Tag added!');
+        alert(id ? 'Updated!' : 'Added!');
     } catch (error) {
-        console.error('Error saving tag:', error);
         alert('Error: ' + error.message);
     }
 });
@@ -290,7 +204,6 @@ document.getElementById('tag-form').addEventListener('submit', async (e) => {
 async function editTag(id) {
     const tag = allTags.find(t => t.id === id);
     if (!tag) return;
-    
     document.getElementById('tag-modal-title').textContent = 'Edit Tag';
     document.getElementById('tag-id').value = tag.id;
     document.getElementById('tag-name').value = tag.name;
@@ -299,192 +212,239 @@ async function editTag(id) {
 
 async function deleteTag(id) {
     if (!confirm('Delete this tag?')) return;
-    
-    try {
-        const { error } = await supabase
-            .from('tags')
-            .delete()
-            .eq('id', id);
-        
-        if (error) throw error;
-        
-        loadTags();
-        loadTagsTable();
-        alert('Tag deleted!');
-    } catch (error) {
-        console.error('Error deleting tag:', error);
-        alert('Error: ' + error.message);
-    }
+    await supabase.from('tags').delete().eq('id', id);
+    loadTags();
+    loadTagsTable();
 }
 
 function closeTagModal() {
     document.getElementById('tag-modal').classList.remove('active');
 }
 
-// ============ PRODUCTS ============
-async function loadProductsTable() {
+// Quick add tag from product form
+async function quickAddTag() {
+    const name = document.getElementById('new-tag-name').value.trim();
+    if (!name) return;
+    
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     try {
-        const { data, error } = await supabase
-            .from('products')
-            .select('*, categories(name)')
-            .order('created_at', { ascending: false });
-        
+        const { data, error } = await supabase.from('tags').insert([{ name, slug }]).select();
         if (error) throw error;
         
-        const tableContainer = document.getElementById('products-table');
+        await loadTags();
+        populateTagSelect();
         
-        if (!data || data.length === 0) {
-            tableContainer.innerHTML = '<p style="padding: 3rem; text-align: center;">No products yet. Add your first product!</p>';
-            return;
-        }
+        // Auto-select the new tag
+        const newTag = data[0];
+        const select = document.getElementById('product-tags');
+        Array.from(select.options).forEach(opt => {
+            if (parseInt(opt.value) === newTag.id) opt.selected = true;
+        });
         
-        tableContainer.innerHTML = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Price</th>
-                        <th>Stock</th>
-                        <th>Category</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${data.map(product => `
-                        <tr>
-                            <td><img src="${product.image_url}" alt="${product.name}"></td>
-                            <td><strong>${product.name}</strong></td>
-                            <td>$${product.price.toFixed(2)}</td>
-                            <td>${product.stock}</td>
-                            <td>${product.categories ? product.categories.name : product.category || 'N/A'}</td>
-                            <td>
-                                <button class="edit-btn" onclick="editProduct(${product.id})">Edit</button>
-                                <button class="delete-btn" onclick="deleteProduct(${product.id})">Delete</button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
+        document.getElementById('new-tag-name').value = '';
+        alert('Tag added!');
     } catch (error) {
-        console.error('Error loading products:', error);
+        alert('Error: ' + error.message);
     }
 }
 
+// ========== PRODUCTS ==========
+async function loadProductsTable() {
+    const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error(error);
+        return;
+    }
+    
+    allProducts = data || [];
+    displayProducts();
+}
+
+function displayProducts() {
+    const search = document.getElementById('product-search')?.value.toLowerCase() || '';
+    const status = document.getElementById('status-filter')?.value || 'all';
+    
+    let filtered = allProducts.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(search) || 
+                            (p.description && p.description.toLowerCase().includes(search));
+        const matchesStatus = status === 'all' || p.status === status;
+        return matchesSearch && matchesStatus;
+    });
+    
+    const table = document.getElementById('products-table');
+    
+    if (filtered.length === 0) {
+        table.innerHTML = '<p style="padding: 3rem; text-align: center;">No products found</p>';
+        return;
+    }
+    
+    table.innerHTML = `<table>
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${filtered.map(p => {
+                const mainImage = p.images && p.images.length > 0 ? p.images[0] : p.image_url;
+                return `<tr>
+                    <td><img src="${mainImage}" alt="${p.name}"></td>
+                    <td><strong>${p.name}</strong></td>
+                    <td>$${p.price.toFixed(2)}</td>
+                    <td>${p.stock}</td>
+                    <td><span class="status-badge status-${p.status || 'active'}">${p.status || 'active'}</span></td>
+                    <td>
+                        <button class="edit-btn" onclick="editProduct(${p.id})">Edit</button>
+                        <button class="delete-btn" onclick="deleteProduct(${p.id})">Delete</button>
+                    </td>
+                </tr>`;
+            }).join('')}
+        </tbody>
+    </table>`;
+}
+
+// Search and filter
+document.getElementById('product-search')?.addEventListener('input', displayProducts);
+document.getElementById('status-filter')?.addEventListener('change', displayProducts);
+
+// Add product
 document.getElementById('add-product-btn').addEventListener('click', async () => {
     await loadCategories();
     await loadTags();
     populateCategorySelect();
     populateTagSelect();
     
-    document.getElementById('modal-title').textContent = 'Add Product';
+    document.getElementById('product-modal-title').textContent = 'Add Product';
     document.getElementById('product-form').reset();
     document.getElementById('product-id').value = '';
-    document.getElementById('upload-filename').textContent = 'No file chosen';
-    document.getElementById('image-preview').innerHTML = '';
-    document.getElementById('product-form-modal').classList.add('active');
+    document.getElementById('images-preview').innerHTML = '';
+    uploadedImages = [];
+    document.getElementById('product-modal').classList.add('active');
 });
 
 function populateCategorySelect() {
-    const select = document.getElementById('product-category');
-    select.innerHTML = '<option value="">Select category...</option>' +
-        allCategories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+    const select = document.getElementById('product-categories');
+    select.innerHTML = allCategories.map(cat => 
+        `<option value="${cat.id}">${cat.name}</option>`
+    ).join('');
 }
 
 function populateTagSelect() {
     const select = document.getElementById('product-tags');
-    select.innerHTML = allTags.map(tag => `<option value="${tag.id}">${tag.name}</option>`).join('');
+    select.innerHTML = allTags.map(tag => 
+        `<option value="${tag.id}">${tag.name}</option>`
+    ).join('');
 }
 
-// Image upload handling
-document.getElementById('product-image-file').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+// Image upload
+document.getElementById('product-images-upload').addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    const preview = document.getElementById('images-preview');
     
-    document.getElementById('upload-filename').textContent = file.name;
-    
-    // Preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        document.getElementById('image-preview').innerHTML = 
-            `<img src="${e.target.result}" style="max-width: 200px; max-height: 200px; border-radius: 8px;">`;
-    };
-    reader.readAsDataURL(file);
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const div = document.createElement('div');
+            div.className = 'image-preview-item';
+            div.innerHTML = `
+                <img src="${e.target.result}">
+                <button type="button" class="remove-image" onclick="this.parentElement.remove()">×</button>
+            `;
+            preview.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
 });
 
-async function uploadImage(file) {
-    const fileName = `${Date.now()}-${file.name}`;
-    
-    const { data, error } = await supabase.storage
-        .from('product-images')
-        .upload(fileName, file);
-    
-    if (error) throw error;
-    
-    const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(fileName);
-    
-    return publicUrl;
+async function uploadImages(files) {
+    const urls = [];
+    for (const file of files) {
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}-${file.name}`;
+        const { error } = await supabase.storage.from('product-images').upload(fileName, file);
+        if (error) throw error;
+        
+        const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(fileName);
+        urls.push(publicUrl);
+    }
+    return urls;
 }
 
+// Save product
 document.getElementById('product-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Saving...';
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
     
     try {
         const productId = document.getElementById('product-id').value;
         
-        // Handle image upload
-        let imageUrl = document.getElementById('product-image-url').value;
-        const manualUrl = document.getElementById('product-image-url-manual').value;
-        const imageFile = document.getElementById('product-image-file').files[0];
-        
-        if (imageFile) {
-            imageUrl = await uploadImage(imageFile);
-        } else if (manualUrl) {
-            imageUrl = manualUrl;
+        // Get images
+        let imageUrls = [];
+        const files = document.getElementById('product-images-upload').files;
+        if (files.length > 0) {
+            imageUrls = await uploadImages(Array.from(files));
         }
         
-        if (!imageUrl) {
-            alert('Please provide an image');
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Save Product';
+        const manualUrls = document.getElementById('product-image-urls').value
+            .split('\n')
+            .map(url => url.trim())
+            .filter(url => url);
+        
+        imageUrls = [...imageUrls, ...manualUrls];
+        
+        if (imageUrls.length === 0 && !productId) {
+            alert('Please add at least one image');
+            btn.disabled = false;
+            btn.textContent = 'Save Product';
             return;
         }
         
-        // Get selected tags
+        // Get categories
+        const catSelect = document.getElementById('product-categories');
+        const categoryIds = Array.from(catSelect.selectedOptions).map(opt => parseInt(opt.value));
+        
+        // Get tags
         const tagSelect = document.getElementById('product-tags');
-        const selectedTags = Array.from(tagSelect.selectedOptions).map(opt => parseInt(opt.value));
+        const tagIds = Array.from(tagSelect.selectedOptions).map(opt => parseInt(opt.value));
+        
+        // Generate slug
+        const name = document.getElementById('product-name').value;
+        let slug = document.getElementById('product-slug').value.trim();
+        if (!slug) {
+            slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        }
         
         const productData = {
-            name: document.getElementById('product-name').value,
+            name,
             price: parseFloat(document.getElementById('product-price').value),
             stock: parseInt(document.getElementById('product-stock').value),
-            category_id: parseInt(document.getElementById('product-category').value),
-            tag_ids: selectedTags,
+            status: document.getElementById('product-status').value,
             description: document.getElementById('product-description').value,
             features: document.getElementById('product-features').value,
-            image_url: imageUrl
+            category_ids: categoryIds,
+            tag_ids: tagIds,
+            images: imageUrls,
+            image_url: imageUrls[0] || null, // Keep for backwards compatibility
+            seo_title: document.getElementById('product-seo-title').value || null,
+            seo_description: document.getElementById('product-seo-description').value || null,
+            seo_keywords: document.getElementById('product-seo-keywords').value || null,
+            slug
         };
         
         if (productId) {
-            const { error } = await supabase
-                .from('products')
-                .update(productData)
-                .eq('id', productId);
-            
-            if (error) throw error;
+            await supabase.from('products').update(productData).eq('id', productId);
         } else {
-            const { error } = await supabase
-                .from('products')
-                .insert([productData]);
-            
-            if (error) throw error;
+            await supabase.from('products').insert([productData]);
         }
         
         closeProductModal();
@@ -492,89 +452,80 @@ document.getElementById('product-form').addEventListener('submit', async (e) => 
         alert(productId ? 'Product updated!' : 'Product added!');
         
     } catch (error) {
-        console.error('Error saving product:', error);
+        console.error(error);
         alert('Error: ' + error.message);
     } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Save Product';
+        btn.disabled = false;
+        btn.textContent = 'Save Product';
     }
 });
 
-async function editProduct(productId) {
-    try {
-        await loadCategories();
-        await loadTags();
-        
-        const { data, error } = await supabase
-            .from('products')
-            .select('*')
-            .eq('id', productId)
-            .single();
-        
-        if (error) throw error;
-        
-        populateCategorySelect();
-        populateTagSelect();
-        
-        document.getElementById('modal-title').textContent = 'Edit Product';
-        document.getElementById('product-id').value = data.id;
-        document.getElementById('product-name').value = data.name;
-        document.getElementById('product-price').value = data.price;
-        document.getElementById('product-stock').value = data.stock;
-        document.getElementById('product-category').value = data.category_id || '';
-        document.getElementById('product-description').value = data.description;
-        document.getElementById('product-features').value = data.features || '';
-        document.getElementById('product-image-url').value = data.image_url;
-        document.getElementById('product-image-url-manual').value = data.image_url;
-        
-        // Set selected tags
-        if (data.tag_ids) {
-            const tagSelect = document.getElementById('product-tags');
-            Array.from(tagSelect.options).forEach(opt => {
-                opt.selected = data.tag_ids.includes(parseInt(opt.value));
-            });
-        }
-        
-        // Show current image
-        document.getElementById('image-preview').innerHTML = 
-            `<img src="${data.image_url}" style="max-width: 200px; max-height: 200px; border-radius: 8px;">`;
-        
-        document.getElementById('product-form-modal').classList.add('active');
-        
-    } catch (error) {
-        console.error('Error loading product:', error);
+async function editProduct(id) {
+    await loadCategories();
+    await loadTags();
+    
+    const { data, error } = await supabase.from('products').select('*').eq('id', id).single();
+    if (error) {
         alert('Error loading product');
+        return;
     }
+    
+    populateCategorySelect();
+    populateTagSelect();
+    
+    document.getElementById('product-modal-title').textContent = 'Edit Product';
+    document.getElementById('product-id').value = data.id;
+    document.getElementById('product-name').value = data.name;
+    document.getElementById('product-price').value = data.price;
+    document.getElementById('product-stock').value = data.stock;
+    document.getElementById('product-status').value = data.status || 'active';
+    document.getElementById('product-description').value = data.description;
+    document.getElementById('product-features').value = data.features || '';
+    document.getElementById('product-seo-title').value = data.seo_title || '';
+    document.getElementById('product-seo-description').value = data.seo_description || '';
+    document.getElementById('product-seo-keywords').value = data.seo_keywords || '';
+    document.getElementById('product-slug').value = data.slug || '';
+    
+    // Set categories
+    if (data.category_ids) {
+        const catSelect = document.getElementById('product-categories');
+        Array.from(catSelect.options).forEach(opt => {
+            opt.selected = data.category_ids.includes(parseInt(opt.value));
+        });
+    }
+    
+    // Set tags
+    if (data.tag_ids) {
+        const tagSelect = document.getElementById('product-tags');
+        Array.from(tagSelect.options).forEach(opt => {
+            opt.selected = data.tag_ids.includes(parseInt(opt.value));
+        });
+    }
+    
+    // Show images
+    const preview = document.getElementById('images-preview');
+    preview.innerHTML = '';
+    if (data.images && data.images.length > 0) {
+        data.images.forEach(url => {
+            const div = document.createElement('div');
+            div.className = 'image-preview-item';
+            div.innerHTML = `
+                <img src="${url}">
+                <button type="button" class="remove-image" onclick="this.parentElement.remove()">×</button>
+            `;
+            preview.appendChild(div);
+        });
+    }
+    
+    document.getElementById('product-modal').classList.add('active');
 }
 
-async function deleteProduct(productId) {
+async function deleteProduct(id) {
     if (!confirm('Delete this product?')) return;
-    
-    try {
-        const { error } = await supabase
-            .from('products')
-            .delete()
-            .eq('id', productId);
-        
-        if (error) throw error;
-        
-        loadProductsTable();
-        alert('Product deleted!');
-    } catch (error) {
-        console.error('Error deleting product:', error);
-        alert('Error: ' + error.message);
-    }
+    await supabase.from('products').delete().eq('id', id);
+    loadProductsTable();
 }
 
 function closeProductModal() {
-    document.getElementById('product-form-modal').classList.remove('active');
+    document.getElementById('product-modal').classList.remove('active');
 }
-
-// Close modals on overlay click
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', () => {
-        closeProductModal();
-        closeCategoryModal();
-        closeTagModal();
-    });
-});

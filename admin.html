@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - KosherLynk</title>
+    <title>Admin Dashboard - KosherLynk</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -71,6 +69,17 @@
                         </div>
                         <button id="add-product-btn" class="btn btn-primary">+ Add Product</button>
                     </div>
+
+                    <!-- Search and Filter -->
+                    <div class="admin-toolbar">
+                        <input type="text" id="product-search" placeholder="Search products..." class="search-input">
+                        <select id="status-filter" class="filter-select">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="draft">Draft</option>
+                        </select>
+                    </div>
+
                     <div id="products-table" class="products-table"></div>
                 </div>
 
@@ -101,67 +110,126 @@
         </main>
     </div>
 
-    <!-- Add/Edit Product Modal -->
-    <div id="product-form-modal" class="modal">
+    <!-- Product Modal -->
+    <div id="product-modal" class="modal">
         <div class="modal-overlay"></div>
-        <div class="modal-content modal-large">
-            <button class="modal-close">&times;</button>
-            <h2 id="modal-title">Add Product</h2>
+        <div class="modal-content modal-xl">
+            <button class="modal-close" onclick="closeProductModal()">&times;</button>
+            <h2 id="product-modal-title">Add Product</h2>
+            
             <form id="product-form">
                 <input type="hidden" id="product-id">
                 
-                <div class="form-group">
-                    <label for="product-name">Product Name</label>
-                    <input type="text" id="product-name" required>
+                <!-- Basic Info Section -->
+                <div class="form-section">
+                    <h3>Basic Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="product-name">Product Name *</label>
+                        <input type="text" id="product-name" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="product-price">Price ($) *</label>
+                            <input type="number" id="product-price" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-stock">Stock *</label>
+                            <input type="number" id="product-stock" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-status">Status *</label>
+                            <select id="product-status" required>
+                                <option value="active">Active</option>
+                                <option value="draft">Draft</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-description">Description *</label>
+                        <textarea id="product-description" rows="8" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-features">Features (one per line)</label>
+                        <textarea id="product-features" rows="6" placeholder="Long battery life&#10;Durable build&#10;Simple interface"></textarea>
+                    </div>
                 </div>
 
-                <div class="form-row">
+                <!-- Categories & Tags Section -->
+                <div class="form-section">
+                    <h3>Categories & Tags</h3>
+                    
                     <div class="form-group">
-                        <label for="product-price">Price ($)</label>
-                        <input type="number" id="product-price" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="product-stock">Stock</label>
-                        <input type="number" id="product-stock" required>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="product-category">Category</label>
-                        <select id="product-category" required>
-                            <option value="">Select category...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="product-tags">Tags</label>
-                        <select id="product-tags" multiple style="height: 100px;">
+                        <label for="product-categories">Categories (select multiple)</label>
+                        <select id="product-categories" multiple style="height: 120px;">
                         </select>
                         <small>Hold Ctrl/Cmd to select multiple</small>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label for="product-description">Description</label>
-                    <textarea id="product-description" rows="8" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="product-features">Features (one per line)</label>
-                    <textarea id="product-features" rows="6" placeholder="Long battery life&#10;Durable build&#10;Simple interface"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Product Image</label>
-                    <div class="image-upload-section">
-                        <input type="file" id="product-image-file" accept="image/*" style="display: none;">
-                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('product-image-file').click()">Choose Image</button>
-                        <span id="upload-filename">No file chosen</span>
-                        <div id="image-preview" style="margin-top: 1rem;"></div>
+                    <div class="form-group">
+                        <label>Tags</label>
+                        <div class="tags-input-wrapper">
+                            <select id="product-tags" multiple style="height: 100px;">
+                            </select>
+                            <div style="margin-top: 0.5rem;">
+                                <input type="text" id="new-tag-name" placeholder="Quick add new tag..." style="display: inline-block; width: 70%;">
+                                <button type="button" class="btn btn-secondary" onclick="quickAddTag()" style="display: inline-block; width: 28%; margin-left: 2%;">Add Tag</button>
+                            </div>
+                        </div>
+                        <small>Hold Ctrl/Cmd to select multiple existing tags</small>
                     </div>
-                    <input type="hidden" id="product-image-url">
-                    <small>Or paste image URL:</small>
-                    <input type="url" id="product-image-url-manual" placeholder="https://example.com/image.jpg">
+                </div>
+
+                <!-- Images Section -->
+                <div class="form-section">
+                    <h3>Product Images</h3>
+                    
+                    <div class="form-group">
+                        <label>Upload Images (multiple)</label>
+                        <input type="file" id="product-images-upload" accept="image/*" multiple style="display: none;">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('product-images-upload').click()">Choose Images</button>
+                        <small style="display: block; margin-top: 0.5rem;">You can upload multiple images. First image will be the main image.</small>
+                    </div>
+
+                    <div id="images-preview" class="images-preview-grid"></div>
+
+                    <div class="form-group">
+                        <label>Or paste image URLs (one per line)</label>
+                        <textarea id="product-image-urls" rows="3" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"></textarea>
+                    </div>
+                </div>
+
+                <!-- SEO Section -->
+                <div class="form-section">
+                    <h3>SEO Settings</h3>
+                    <p class="seo-help">Optimize your product for search engines</p>
+                    
+                    <div class="form-group">
+                        <label for="product-seo-title">SEO Title</label>
+                        <input type="text" id="product-seo-title" maxlength="60">
+                        <small>Recommended: 50-60 characters. Leave empty to use product name.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-seo-description">SEO Description</label>
+                        <textarea id="product-seo-description" rows="3" maxlength="160"></textarea>
+                        <small>Recommended: 150-160 characters. This appears in search results.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-seo-keywords">SEO Keywords</label>
+                        <input type="text" id="product-seo-keywords" placeholder="basic phone, simple phone, dumb phone">
+                        <small>Separate keywords with commas. Example: basic phone, simple phone, dumb phone</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-slug">URL Slug</label>
+                        <input type="text" id="product-slug" placeholder="essential-basic-phone">
+                        <small>Leave empty to auto-generate from product name. Use lowercase letters and hyphens only.</small>
+                    </div>
                 </div>
 
                 <div class="form-actions">
@@ -174,14 +242,14 @@
 
     <!-- Category Modal -->
     <div id="category-modal" class="modal">
-        <div class="modal-overlay"></div>
+        <div class="modal-overlay" onclick="closeCategoryModal()"></div>
         <div class="modal-content">
             <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
             <h2 id="category-modal-title">Add Category</h2>
             <form id="category-form">
                 <input type="hidden" id="category-id">
                 <div class="form-group">
-                    <label for="category-name">Category Name</label>
+                    <label for="category-name">Category Name *</label>
                     <input type="text" id="category-name" required>
                 </div>
                 <div class="form-actions">
@@ -194,14 +262,14 @@
 
     <!-- Tag Modal -->
     <div id="tag-modal" class="modal">
-        <div class="modal-overlay"></div>
+        <div class="modal-overlay" onclick="closeTagModal()"></div>
         <div class="modal-content">
             <button class="modal-close" onclick="closeTagModal()">&times;</button>
             <h2 id="tag-modal-title">Add Tag</h2>
             <form id="tag-form">
                 <input type="hidden" id="tag-id">
                 <div class="form-group">
-                    <label for="tag-name">Tag Name</label>
+                    <label for="tag-name">Tag Name *</label>
                     <input type="text" id="tag-name" required>
                 </div>
                 <div class="form-actions">
