@@ -49,15 +49,21 @@ exports.handler = async (event) => {
 
       if (fetchError) throw fetchError;
 
-      // Decrease stock by 1
-      const newStock = Math.max(0, product.stock - 1);
+      // Only decrease stock if tracking inventory
+      if (product.track_inventory !== false) {
+        const newStock = Math.max(0, product.stock - 1);
 
-      const { error: updateError } = await supabase
-        .from('products')
-        .update({ stock: newStock })
-        .eq('id', productId);
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({ stock: newStock })
+          .eq('id', productId);
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError;
+        
+        console.log(`Updated product ${productId} stock to ${newStock}`);
+      } else {
+        console.log(`Product ${productId} has unlimited stock (track_inventory = false)`);
+      }
 
       // Save order to database (only if orders table exists)
       try {
