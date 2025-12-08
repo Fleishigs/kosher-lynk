@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Products - KosherLynk</title>
+    <title id="page-title">Product - KosherLynk</title>
+    <meta name="description" id="page-description" content="">
+    <meta name="keywords" id="page-keywords" content="">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -26,21 +28,13 @@
     </nav>
 
     <main>
-        <section class="page-hero">
+        <section class="product-detail-section">
             <div class="container">
-                <h1>Our Phones</h1>
-                <p>Simple devices for intentional living</p>
-            </div>
-        </section>
-
-        <section class="products-section">
-            <div class="container">
-                <div class="filters">
-                    <button class="filter-btn active" data-filter="all">All</button>
-                    <div id="category-filters"></div>
+                <a href="products.html" class="back-link">← Back to Products</a>
+                
+                <div id="product-detail" class="product-detail">
+                    <!-- Loaded by JavaScript -->
                 </div>
-
-                <div id="products-grid" class="products-grid"></div>
             </div>
         </section>
     </main>
@@ -59,16 +53,6 @@
                     </div>
                     <p>Simple phones for intentional living</p>
                 </div>
-                <div class="footer-links">
-                    <div class="footer-column">
-                        <h4>Product</h4>
-                        <a href="products.html">All Phones</a>
-                    </div>
-                    <div class="footer-column">
-                        <h4>Support</h4>
-                        <a href="contact.html">Contact Us</a>
-                    </div>
-                </div>
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2024 KosherLynk. All rights reserved.</p>
@@ -77,7 +61,8 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="config.js"></script>
-    <script src="products.js"></script>
+    <script src="product.js"></script>
 </body>
 </html>

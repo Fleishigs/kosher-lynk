@@ -1,140 +1,155 @@
 let allProducts = [];
+let allCategories = [];
+let allTags = [];
 let currentFilter = 'all';
 
-// Load all products
+async function loadAll() {
+    await Promise.all([
+        loadCategories(),
+        loadTags(),
+        loadProducts()
+    ]);
+    
+    createCategoryFilters();
+    displayProducts();
+}
+
+async function loadCategories() {
+    const { data } = await supabase.from('categories').select('*').order('name');
+    allCategories = data || [];
+}
+
+async function loadTags() {
+    const { data } = await supabase.from('tags').select('*').order('name');
+    allTags = data || [];
+}
+
 async function loadProducts() {
-    try {
-        const { data, error } = await supabase
-            .from('products')
-            .select('*')
-            .order('created_at', { ascending: false });
+    const { data } = await supabase
+        .from('products')
+        .select('*')
+        .eq('status', 'active')
+        .gt('stock', 0)
+        .order('created_at', { ascending: false });
+    
+    allProducts = data || [];
+}
 
-        if (error) throw error;
-
-        allProducts = data || [];
-        displayProducts();
-    } catch (error) {
-        console.error('Error loading products:', error);
-    }
+function createCategoryFilters() {
+    const container = document.getElementById('category-filters');
+    container.innerHTML = allCategories.map(cat => 
+        `<button class="filter-btn" data-filter="${cat.id}">${cat.name}</button>`
+    ).join('');
+    
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.filter;
+            displayProducts();
+        });
+    });
 }
 
 function displayProducts() {
-    const grid = document.getElementById('products-grid');
-    if (!grid) return;
-
     let filtered = allProducts;
+    
     if (currentFilter !== 'all') {
-        filtered = allProducts.filter(p => p.category === currentFilter);
+        filtered = allProducts.filter(p => 
+            p.category_ids && p.category_ids.includes(parseInt(currentFilter))
+        );
     }
-
+    
+    const grid = document.getElementById('products-grid');
+    
     if (filtered.length === 0) {
-        grid.innerHTML = '<p style="text-align: center; color: var(--text-light); grid-column: 1 / -1;">No products found.</p>';
+        grid.innerHTML = '<p style="text-align: center; color: var(--text-light); grid-column: 1 / -1;">No products found</p>';
         return;
     }
-
+    
     grid.innerHTML = filtered.map(product => {
-        const outOfStock = product.stock <= 0;
+        const images = product.images && product.images.length > 0 ? product.images : [product.image_url];
+        const mainImage = images[0];
+        
+        // Get category names
+        const categoryNames = product.category_ids 
+            ? product.category_ids.map(id => {
+                const cat = allCategories.find(c => c.id === id);
+                return cat ? cat.name : '';
+            }).filter(Boolean)
+            : [];
+        
+        // Get tag names
+        const tagNames = product.tag_ids 
+            ? product.tag_ids.map(id => {
+                const tag = allTags.find(t => t.id === id);
+                return tag ? tag.name : '';
+            }).filter(Boolean)
+            : [];
+        
         return `
-            <div class="product-card ${outOfStock ? 'out-of-stock' : ''}" onclick="openProductModal(${product.id})">
-                <img src="${product.image_url}" alt="${product.name}" class="product-image">
+            <a href="product.html?id=${product.id}" class="product-card">
+                <div class="product-image-container" ${images.length > 1 ? `data-images='${JSON.stringify(images)}'` : ''}>
+                    <img src="${mainImage}" alt="${product.name}" class="product-image">
+                    ${images.length > 1 ? '<div class="image-dots"></div>' : ''}
+                </div>
                 <div class="product-info">
                     <h3 class="product-name">${product.name}</h3>
-                    <p class="product-description">${truncateText(product.description, 80)}</p>
+                    ${categoryNames.length > 0 ? `<div class="product-categories">${categoryNames.map(c => `<span class="cat-badge">${c}</span>`).join('')}</div>` : ''}
+                    <p class="product-description">${truncate(product.description, 80)}</p>
+                    ${tagNames.length > 0 ? `<div class="product-tags">${tagNames.slice(0, 3).map(t => `<span class="tag-badge">${t}</span>`).join('')}</div>` : ''}
                     <div class="product-price">$${product.price.toFixed(2)}</div>
-                    <div class="product-stock">${outOfStock ? 'Out of Stock' : `${product.stock} in stock`}</div>
                 </div>
-            </div>
+            </a>
         `;
     }).join('');
+    
+    // Add hover image slider
+    setupImageSliders();
 }
 
-function truncateText(text, maxLength) {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-}
-
-// Filter functionality
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentFilter = btn.dataset.filter;
-        displayProducts();
-    });
-});
-
-// Product Modal
-function openProductModal(productId) {
-    const product = allProducts.find(p => p.id === productId);
-    if (!product) return;
-
-    const modal = document.getElementById('product-modal');
-    const modalBody = document.getElementById('modal-body');
-
-    const features = product.features ? product.features.split('\n').filter(f => f.trim()) : [];
-    const outOfStock = product.stock <= 0;
-
-    modalBody.innerHTML = `
-        <img src="${product.image_url}" alt="${product.name}" class="modal-image">
-        <h2>${product.name}</h2>
-        <div class="modal-price">$${product.price.toFixed(2)}</div>
-        <p class="modal-description">${product.description}</p>
+function setupImageSliders() {
+    document.querySelectorAll('.product-image-container[data-images]').forEach(container => {
+        const images = JSON.parse(container.dataset.images);
+        if (images.length <= 1) return;
         
-        ${features.length > 0 ? `
-            <div class="modal-features">
-                <h3>Features</h3>
-                <ul>
-                    ${features.map(f => `<li>${f}</li>`).join('')}
-                </ul>
-            </div>
-        ` : ''}
+        const img = container.querySelector('.product-image');
+        const dotsContainer = container.querySelector('.image-dots');
+        let currentIndex = 0;
         
-        <div class="product-stock">${outOfStock ? 'Out of Stock' : `${product.stock} available`}</div>
+        // Create dots
+        dotsContainer.innerHTML = images.map((_, i) => 
+            `<span class="dot ${i === 0 ? 'active' : ''}"></span>`
+        ).join('');
         
-        ${!outOfStock ? `<button class="btn btn-primary btn-large" onclick="checkoutProduct(${product.id})">Purchase Now</button>` : ''}
-    `;
-
-    modal.classList.add('active');
-}
-
-function closeProductModal() {
-    document.getElementById('product-modal').classList.remove('active');
-}
-
-// Close modal handlers
-document.querySelector('.modal-close').addEventListener('click', closeProductModal);
-document.querySelector('.modal-overlay').addEventListener('click', closeProductModal);
-
-// Stripe Checkout
-async function checkoutProduct(productId) {
-    const product = allProducts.find(p => p.id === productId);
-    if (!product || !stripe) return;
-
-    try {
-        const response = await fetch('/.netlify/functions/create-checkout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                productId: product.id,
-                productName: product.name,
-                productPrice: product.price,
-                productImage: product.image_url
-            })
+        const dots = dotsContainer.querySelectorAll('.dot');
+        
+        container.addEventListener('mouseenter', () => {
+            container.interval = setInterval(() => {
+                currentIndex = (currentIndex + 1) % images.length;
+                img.src = images[currentIndex];
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === currentIndex);
+                });
+            }, 1000);
         });
-
-        const data = await response.json();
         
-        if (data.error) {
-            throw new Error(data.error);
-        }
-
-        await stripe.redirectToCheckout({ sessionId: data.sessionId });
-        
-    } catch (error) {
-        console.error('Checkout error:', error);
-        alert('Error processing checkout. Please try again or contact us.');
-    }
+        container.addEventListener('mouseleave', () => {
+            if (container.interval) {
+                clearInterval(container.interval);
+                currentIndex = 0;
+                img.src = images[0];
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === 0);
+                });
+            }
+        });
+    });
 }
 
-// Load products on page load
-loadProducts();
+function truncate(text, length) {
+    if (!text || text.length <= length) return text || '';
+    return text.substring(0, length) + '...';
+}
+
+loadAll();

@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - KosherLynk</title>
+    <title>Admin - KosherLynk</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
 </head>
 <body>
-    <!-- Login Screen -->
+    <!-- Login -->
     <div id="login-screen" class="admin-login">
         <div class="login-box">
             <div class="login-header">
@@ -18,15 +19,14 @@
                     <circle cx="20" cy="31" r="2" fill="white"/>
                 </svg>
                 <h1>Admin Login</h1>
-                <p>KosherLynk Dashboard</p>
             </div>
             <form id="login-form">
                 <div class="form-group">
-                    <label for="admin-email">Email</label>
+                    <label>Email</label>
                     <input type="email" id="admin-email" required>
                 </div>
                 <div class="form-group">
-                    <label for="admin-password">Password</label>
+                    <label>Password</label>
                     <input type="password" id="admin-password" required>
                 </div>
                 <button type="submit" class="btn btn-primary btn-large">Login</button>
@@ -35,7 +35,7 @@
         </div>
     </div>
 
-    <!-- Admin Dashboard -->
+    <!-- Dashboard -->
     <div id="admin-dashboard" class="admin-dashboard" style="display: none;">
         <nav class="admin-nav">
             <div class="nav-container">
@@ -53,58 +53,45 @@
 
         <main class="admin-main">
             <div class="container">
-                <!-- Tabs -->
                 <div class="admin-tabs">
                     <button class="tab-btn active" data-tab="products">Products</button>
                     <button class="tab-btn" data-tab="categories">Categories</button>
                     <button class="tab-btn" data-tab="tags">Tags</button>
                 </div>
 
-                <!-- Products Tab -->
+                <!-- Products -->
                 <div id="products-tab" class="tab-content active">
                     <div class="admin-header">
-                        <div>
-                            <h1>Products</h1>
-                            <p>Manage your product catalog</p>
-                        </div>
+                        <div><h1>Products</h1></div>
                         <button id="add-product-btn" class="btn btn-primary">+ Add Product</button>
                     </div>
-
-                    <!-- Search and Filter -->
                     <div class="admin-toolbar">
-                        <input type="text" id="product-search" placeholder="Search products..." class="search-input">
+                        <input type="text" id="product-search" placeholder="Search..." class="search-input">
                         <select id="status-filter" class="filter-select">
-                            <option value="all">All Status</option>
+                            <option value="all">All</option>
                             <option value="active">Active</option>
                             <option value="draft">Draft</option>
                         </select>
                     </div>
-
-                    <div id="products-table" class="products-table"></div>
+                    <div id="products-table"></div>
                 </div>
 
-                <!-- Categories Tab -->
+                <!-- Categories -->
                 <div id="categories-tab" class="tab-content">
                     <div class="admin-header">
-                        <div>
-                            <h1>Categories</h1>
-                            <p>Manage product categories</p>
-                        </div>
-                        <button id="add-category-btn" class="btn btn-primary">+ Add Category</button>
+                        <div><h1>Categories</h1></div>
+                        <button id="add-category-btn" class="btn btn-primary">+ Add</button>
                     </div>
-                    <div id="categories-table" class="products-table"></div>
+                    <div id="categories-table"></div>
                 </div>
 
-                <!-- Tags Tab -->
+                <!-- Tags -->
                 <div id="tags-tab" class="tab-content">
                     <div class="admin-header">
-                        <div>
-                            <h1>Tags</h1>
-                            <p>Manage product tags</p>
-                        </div>
-                        <button id="add-tag-btn" class="btn btn-primary">+ Add Tag</button>
+                        <div><h1>Tags</h1></div>
+                        <button id="add-tag-btn" class="btn btn-primary">+ Add</button>
                     </div>
-                    <div id="tags-table" class="products-table"></div>
+                    <div id="tags-table"></div>
                 </div>
             </div>
         </main>
@@ -112,131 +99,123 @@
 
     <!-- Product Modal -->
     <div id="product-modal" class="modal">
-        <div class="modal-overlay"></div>
+        <div class="modal-overlay" onclick="closeProductModal()"></div>
         <div class="modal-content modal-xl">
             <button class="modal-close" onclick="closeProductModal()">&times;</button>
             <h2 id="product-modal-title">Add Product</h2>
-            
             <form id="product-form">
                 <input type="hidden" id="product-id">
                 
-                <!-- Basic Info Section -->
                 <div class="form-section">
-                    <h3>Basic Information</h3>
-                    
+                    <h3>Basic Info</h3>
                     <div class="form-group">
-                        <label for="product-name">Product Name *</label>
+                        <label>Name *</label>
                         <input type="text" id="product-name" required>
                     </div>
-
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="product-price">Price ($) *</label>
+                            <label>Price *</label>
                             <input type="number" id="product-price" step="0.01" required>
                         </div>
                         <div class="form-group">
-                            <label for="product-stock">Stock *</label>
+                            <label>Stock *</label>
                             <input type="number" id="product-stock" required>
                         </div>
                         <div class="form-group">
-                            <label for="product-status">Status *</label>
-                            <select id="product-status" required>
+                            <label>Status</label>
+                            <select id="product-status">
                                 <option value="active">Active</option>
                                 <option value="draft">Draft</option>
                             </select>
                         </div>
                     </div>
-
                     <div class="form-group">
-                        <label for="product-description">Description *</label>
-                        <textarea id="product-description" rows="8" required></textarea>
+                        <label>Description *</label>
+                        <textarea id="product-description" rows="6" required></textarea>
                     </div>
-
                     <div class="form-group">
-                        <label for="product-features">Features (one per line)</label>
-                        <textarea id="product-features" rows="6" placeholder="Long battery life&#10;Durable build&#10;Simple interface"></textarea>
+                        <label>Features (one per line)</label>
+                        <textarea id="product-features" rows="4"></textarea>
                     </div>
                 </div>
 
-                <!-- Categories & Tags Section -->
                 <div class="form-section">
                     <h3>Categories & Tags</h3>
-                    
                     <div class="form-group">
-                        <label for="product-categories">Categories (select multiple)</label>
-                        <select id="product-categories" multiple style="height: 120px;">
-                        </select>
-                        <small>Hold Ctrl/Cmd to select multiple</small>
+                        <label>Categories (hold Ctrl/Cmd for multiple)</label>
+                        <select id="product-categories" multiple style="height: 100px;"></select>
                     </div>
-
                     <div class="form-group">
                         <label>Tags</label>
-                        <div class="tags-input-wrapper">
-                            <select id="product-tags" multiple style="height: 100px;">
-                            </select>
-                            <div style="margin-top: 0.5rem;">
-                                <input type="text" id="new-tag-name" placeholder="Quick add new tag..." style="display: inline-block; width: 70%;">
-                                <button type="button" class="btn btn-secondary" onclick="quickAddTag()" style="display: inline-block; width: 28%; margin-left: 2%;">Add Tag</button>
-                            </div>
+                        <select id="product-tags" multiple style="height: 100px;"></select>
+                        <div style="margin-top: 0.5rem;">
+                            <input type="text" id="new-tag" placeholder="Quick add tag..." style="width: 70%; display: inline-block;">
+                            <button type="button" class="btn btn-secondary" onclick="quickAddTag()" style="width: 28%; display: inline-block; margin-left: 2%;">Add</button>
                         </div>
-                        <small>Hold Ctrl/Cmd to select multiple existing tags</small>
                     </div>
                 </div>
 
-                <!-- Images Section -->
                 <div class="form-section">
-                    <h3>Product Images</h3>
-                    
-                    <div class="form-group">
-                        <label>Upload Images (multiple)</label>
-                        <input type="file" id="product-images-upload" accept="image/*" multiple style="display: none;">
-                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('product-images-upload').click()">Choose Images</button>
-                        <small style="display: block; margin-top: 0.5rem;">You can upload multiple images. First image will be the main image.</small>
-                    </div>
-
+                    <h3>Images</h3>
+                    <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('image-upload').click()">Upload Image</button>
+                    <small style="display: block; margin-top: 0.5rem;">Upload one at a time. First = main image.</small>
                     <div id="images-preview" class="images-preview-grid"></div>
-
-                    <div class="form-group">
-                        <label>Or paste image URLs (one per line)</label>
-                        <textarea id="product-image-urls" rows="3" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"></textarea>
-                    </div>
                 </div>
 
-                <!-- SEO Section -->
                 <div class="form-section">
-                    <h3>SEO Settings</h3>
-                    <p class="seo-help">Optimize your product for search engines</p>
-                    
+                    <h3>SEO</h3>
                     <div class="form-group">
-                        <label for="product-seo-title">SEO Title</label>
-                        <input type="text" id="product-seo-title" maxlength="60">
-                        <small>Recommended: 50-60 characters. Leave empty to use product name.</small>
+                        <label>SEO Title (50-60 chars)</label>
+                        <input type="text" id="seo-title" maxlength="60">
                     </div>
-
                     <div class="form-group">
-                        <label for="product-seo-description">SEO Description</label>
-                        <textarea id="product-seo-description" rows="3" maxlength="160"></textarea>
-                        <small>Recommended: 150-160 characters. This appears in search results.</small>
+                        <label>SEO Description (150-160 chars)</label>
+                        <textarea id="seo-description" rows="2" maxlength="160"></textarea>
                     </div>
-
                     <div class="form-group">
-                        <label for="product-seo-keywords">SEO Keywords</label>
-                        <input type="text" id="product-seo-keywords" placeholder="basic phone, simple phone, dumb phone">
-                        <small>Separate keywords with commas. Example: basic phone, simple phone, dumb phone</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="product-slug">URL Slug</label>
-                        <input type="text" id="product-slug" placeholder="essential-basic-phone">
-                        <small>Leave empty to auto-generate from product name. Use lowercase letters and hyphens only.</small>
+                        <label>Keywords (comma separated)</label>
+                        <input type="text" id="seo-keywords">
                     </div>
                 </div>
 
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Product</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Image Editor Modal -->
+    <div id="image-editor-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-xl">
+            <button class="modal-close" onclick="closeImageEditor()">&times;</button>
+            <h2>Edit Image</h2>
+            <div class="image-editor-container">
+                <div class="cropper-wrapper">
+                    <img id="image-to-crop" style="max-width: 100%;">
+                </div>
+                <div class="editor-controls">
+                    <button type="button" class="btn btn-secondary" onclick="cropperRotate(-90)">Rotate Left</button>
+                    <button type="button" class="btn btn-secondary" onclick="cropperRotate(90)">Rotate Right</button>
+                    <button type="button" class="btn btn-secondary" onclick="cropperFlip('h')">Flip H</button>
+                    <button type="button" class="btn btn-secondary" onclick="cropperFlip('v')">Flip V</button>
+                    <button type="button" class="btn btn-secondary" onclick="cropperReset()">Reset</button>
+                </div>
+                <div class="editor-controls">
+                    <label>Aspect Ratio:</label>
+                    <button type="button" class="btn btn-secondary" onclick="cropperSetAspect('free')">Free</button>
+                    <button type="button" class="btn btn-secondary" onclick="cropperSetAspect(1)">1:1</button>
+                    <button type="button" class="btn btn-secondary" onclick="cropperSetAspect(4/3)">4:3</button>
+                    <button type="button" class="btn btn-secondary" onclick="cropperSetAspect(16/9)">16:9</button>
+                </div>
+            </div>
+            <div class="form-actions" style="margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeImageEditor()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveCroppedImage()">Save Image</button>
+            </div>
         </div>
     </div>
 
@@ -249,12 +228,12 @@
             <form id="category-form">
                 <input type="hidden" id="category-id">
                 <div class="form-group">
-                    <label for="category-name">Category Name *</label>
+                    <label>Name</label>
                     <input type="text" id="category-name" required>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Category</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </form>
         </div>
@@ -269,18 +248,19 @@
             <form id="tag-form">
                 <input type="hidden" id="tag-id">
                 <div class="form-group">
-                    <label for="tag-name">Tag Name *</label>
+                    <label>Name</label>
                     <input type="text" id="tag-name" required>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeTagModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Tag</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="config.js"></script>
     <script src="admin.js"></script>
 </body>

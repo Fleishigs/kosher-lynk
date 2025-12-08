@@ -2,9 +2,11 @@ let currentUser = null;
 let allCategories = [];
 let allTags = [];
 let allProducts = [];
-let uploadedImages = [];
+let cropper = null;
+let currentImageFile = null;
+let productImages = [];
 
-// Auth check
+// Auth
 supabase.auth.getSession().then(({ data: { session } }) => {
     if (session) {
         currentUser = session.user;
@@ -12,12 +14,10 @@ supabase.auth.getSession().then(({ data: { session } }) => {
     }
 });
 
-// Login
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('admin-email').value;
     const password = document.getElementById('admin-password').value;
-    const errorDiv = document.getElementById('login-error');
     
     try {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -25,12 +25,11 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         currentUser = data.user;
         showDashboard();
     } catch (error) {
-        errorDiv.textContent = 'Invalid credentials';
-        errorDiv.classList.add('show');
+        document.getElementById('login-error').textContent = 'Invalid credentials';
+        document.getElementById('login-error').classList.add('show');
     }
 });
 
-// Logout
 document.getElementById('logout-btn').addEventListener('click', async () => {
     await supabase.auth.signOut();
     location.reload();
@@ -48,7 +47,7 @@ async function loadAll() {
     await loadProductsTable();
 }
 
-// ========== TABS ==========
+// Tabs
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const tab = btn.dataset.tab;
@@ -57,16 +56,114 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.getElementById(`${tab}-tab`).classList.add('active');
         
-        if (tab === 'products') loadProductsTable();
         if (tab === 'categories') loadCategoriesTable();
         if (tab === 'tags') loadTagsTable();
     });
 });
 
-// ========== CATEGORIES ==========
+// IMAGE CROPPER
+document.getElementById('image-upload').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    currentImageFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('image-to-crop').src = e.target.result;
+        document.getElementById('image-editor-modal').classList.add('active');
+        
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(document.getElementById('image-to-crop'), {
+            viewMode: 1,
+            aspectRatio: NaN,
+            autoCropArea: 1,
+            responsive: true,
+            background: false
+        });
+    };
+    reader.readAsDataURL(file);
+});
+
+function cropperRotate(deg) {
+    if (cropper) cropper.rotate(deg);
+}
+
+function cropperFlip(dir) {
+    if (!cropper) return;
+    if (dir === 'h') cropper.scaleX(-(cropper.getData().scaleX || 1));
+    if (dir === 'v') cropper.scaleY(-(cropper.getData().scaleY || 1));
+}
+
+function cropperReset() {
+    if (cropper) cropper.reset();
+}
+
+function cropperSetAspect(ratio) {
+    if (cropper) {
+        cropper.setAspectRatio(ratio === 'free' ? NaN : ratio);
+    }
+}
+
+async function saveCroppedImage() {
+    if (!cropper) return;
+    
+    const canvas = cropper.getCroppedCanvas({
+        maxWidth: 2000,
+        maxHeight: 2000,
+        imageSmoothingQuality: 'high'
+    });
+    
+    canvas.toBlob(async (blob) => {
+        const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.jpg`;
+        
+        try {
+            const { error } = await supabase.storage
+                .from('product-images')
+                .upload(fileName, blob, { contentType: 'image/jpeg' });
+            
+            if (error) throw error;
+            
+            const { data: { publicUrl } } = supabase.storage
+                .from('product-images')
+                .getPublicUrl(fileName);
+            
+            productImages.push(publicUrl);
+            displayProductImages();
+            closeImageEditor();
+            document.getElementById('image-upload').value = '';
+        } catch (error) {
+            alert('Upload failed: ' + error.message);
+        }
+    }, 'image/jpeg', 0.9);
+}
+
+function displayProductImages() {
+    const preview = document.getElementById('images-preview');
+    preview.innerHTML = productImages.map((url, index) => `
+        <div class="image-preview-item">
+            <img src="${url}">
+            <button type="button" class="remove-image" onclick="removeProductImage(${index})">×</button>
+            ${index === 0 ? '<span class="main-badge">Main</span>' : ''}
+        </div>
+    `).join('');
+}
+
+function removeProductImage(index) {
+    productImages.splice(index, 1);
+    displayProductImages();
+}
+
+function closeImageEditor() {
+    document.getElementById('image-editor-modal').classList.remove('active');
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+}
+
+// CATEGORIES
 async function loadCategories() {
-    const { data, error } = await supabase.from('categories').select('*').order('name');
-    if (error) console.error(error);
+    const { data } = await supabase.from('categories').select('*').order('name');
     allCategories = data || [];
 }
 
@@ -75,23 +172,23 @@ async function loadCategoriesTable() {
     const table = document.getElementById('categories-table');
     
     if (allCategories.length === 0) {
-        table.innerHTML = '<p style="padding: 3rem; text-align: center;">No categories yet</p>';
+        table.innerHTML = '<p style="padding: 3rem; text-align: center;">No categories</p>';
         return;
     }
     
-    table.innerHTML = `<table>
+    table.innerHTML = `<div class="products-table"><table>
         <thead><tr><th>Name</th><th>Slug</th><th>Actions</th></tr></thead>
         <tbody>
-            ${allCategories.map(cat => `<tr>
-                <td><strong>${cat.name}</strong></td>
-                <td>${cat.slug}</td>
+            ${allCategories.map(c => `<tr>
+                <td><strong>${c.name}</strong></td>
+                <td>${c.slug}</td>
                 <td>
-                    <button class="edit-btn" onclick="editCategory(${cat.id})">Edit</button>
-                    <button class="delete-btn" onclick="deleteCategory(${cat.id})">Delete</button>
+                    <button class="edit-btn" onclick="editCategory(${c.id})">Edit</button>
+                    <button class="delete-btn" onclick="deleteCategory(${c.id})">Delete</button>
                 </td>
             </tr>`).join('')}
         </tbody>
-    </table>`;
+    </table></div>`;
 }
 
 document.getElementById('add-category-btn').addEventListener('click', () => {
@@ -116,7 +213,6 @@ document.getElementById('category-form').addEventListener('submit', async (e) =>
         closeCategoryModal();
         loadCategories();
         loadCategoriesTable();
-        alert(id ? 'Updated!' : 'Added!');
     } catch (error) {
         alert('Error: ' + error.message);
     }
@@ -125,14 +221,14 @@ document.getElementById('category-form').addEventListener('submit', async (e) =>
 async function editCategory(id) {
     const cat = allCategories.find(c => c.id === id);
     if (!cat) return;
-    document.getElementById('category-modal-title').textContent = 'Edit Category';
+    document.getElementById('category-modal-title').textContent = 'Edit';
     document.getElementById('category-id').value = cat.id;
     document.getElementById('category-name').value = cat.name;
     document.getElementById('category-modal').classList.add('active');
 }
 
 async function deleteCategory(id) {
-    if (!confirm('Delete this category?')) return;
+    if (!confirm('Delete?')) return;
     await supabase.from('categories').delete().eq('id', id);
     loadCategories();
     loadCategoriesTable();
@@ -142,10 +238,9 @@ function closeCategoryModal() {
     document.getElementById('category-modal').classList.remove('active');
 }
 
-// ========== TAGS ==========
+// TAGS
 async function loadTags() {
-    const { data, error } = await supabase.from('tags').select('*').order('name');
-    if (error) console.error(error);
+    const { data } = await supabase.from('tags').select('*').order('name');
     allTags = data || [];
 }
 
@@ -154,23 +249,23 @@ async function loadTagsTable() {
     const table = document.getElementById('tags-table');
     
     if (allTags.length === 0) {
-        table.innerHTML = '<p style="padding: 3rem; text-align: center;">No tags yet</p>';
+        table.innerHTML = '<p style="padding: 3rem; text-align: center;">No tags</p>';
         return;
     }
     
-    table.innerHTML = `<table>
+    table.innerHTML = `<div class="products-table"><table>
         <thead><tr><th>Name</th><th>Slug</th><th>Actions</th></tr></thead>
         <tbody>
-            ${allTags.map(tag => `<tr>
-                <td><strong>${tag.name}</strong></td>
-                <td>${tag.slug}</td>
+            ${allTags.map(t => `<tr>
+                <td><strong>${t.name}</strong></td>
+                <td>${t.slug}</td>
                 <td>
-                    <button class="edit-btn" onclick="editTag(${tag.id})">Edit</button>
-                    <button class="delete-btn" onclick="deleteTag(${tag.id})">Delete</button>
+                    <button class="edit-btn" onclick="editTag(${t.id})">Edit</button>
+                    <button class="delete-btn" onclick="deleteTag(${t.id})">Delete</button>
                 </td>
             </tr>`).join('')}
         </tbody>
-    </table>`;
+    </table></div>`;
 }
 
 document.getElementById('add-tag-btn').addEventListener('click', () => {
@@ -195,7 +290,6 @@ document.getElementById('tag-form').addEventListener('submit', async (e) => {
         closeTagModal();
         loadTags();
         loadTagsTable();
-        alert(id ? 'Updated!' : 'Added!');
     } catch (error) {
         alert('Error: ' + error.message);
     }
@@ -204,14 +298,14 @@ document.getElementById('tag-form').addEventListener('submit', async (e) => {
 async function editTag(id) {
     const tag = allTags.find(t => t.id === id);
     if (!tag) return;
-    document.getElementById('tag-modal-title').textContent = 'Edit Tag';
+    document.getElementById('tag-modal-title').textContent = 'Edit';
     document.getElementById('tag-id').value = tag.id;
     document.getElementById('tag-name').value = tag.name;
     document.getElementById('tag-modal').classList.add('active');
 }
 
 async function deleteTag(id) {
-    if (!confirm('Delete this tag?')) return;
+    if (!confirm('Delete?')) return;
     await supabase.from('tags').delete().eq('id', id);
     loadTags();
     loadTagsTable();
@@ -221,9 +315,8 @@ function closeTagModal() {
     document.getElementById('tag-modal').classList.remove('active');
 }
 
-// Quick add tag from product form
 async function quickAddTag() {
-    const name = document.getElementById('new-tag-name').value.trim();
+    const name = document.getElementById('new-tag').value.trim();
     if (!name) return;
     
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -234,32 +327,20 @@ async function quickAddTag() {
         await loadTags();
         populateTagSelect();
         
-        // Auto-select the new tag
-        const newTag = data[0];
         const select = document.getElementById('product-tags');
         Array.from(select.options).forEach(opt => {
-            if (parseInt(opt.value) === newTag.id) opt.selected = true;
+            if (parseInt(opt.value) === data[0].id) opt.selected = true;
         });
         
-        document.getElementById('new-tag-name').value = '';
-        alert('Tag added!');
+        document.getElementById('new-tag').value = '';
     } catch (error) {
         alert('Error: ' + error.message);
     }
 }
 
-// ========== PRODUCTS ==========
+// PRODUCTS
 async function loadProductsTable() {
-    const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-    
-    if (error) {
-        console.error(error);
-        return;
-    }
-    
+    const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });
     allProducts = data || [];
     displayProducts();
 }
@@ -269,39 +350,29 @@ function displayProducts() {
     const status = document.getElementById('status-filter')?.value || 'all';
     
     let filtered = allProducts.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(search) || 
-                            (p.description && p.description.toLowerCase().includes(search));
-        const matchesStatus = status === 'all' || p.status === status;
-        return matchesSearch && matchesStatus;
+        const matchSearch = p.name.toLowerCase().includes(search);
+        const matchStatus = status === 'all' || p.status === status;
+        return matchSearch && matchStatus;
     });
     
     const table = document.getElementById('products-table');
     
     if (filtered.length === 0) {
-        table.innerHTML = '<p style="padding: 3rem; text-align: center;">No products found</p>';
+        table.innerHTML = '<p style="padding: 3rem; text-align: center;">No products</p>';
         return;
     }
     
-    table.innerHTML = `<table>
-        <thead>
-            <tr>
-                <th>Image</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Stock</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+    table.innerHTML = `<div class="products-table"><table>
+        <thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>
             ${filtered.map(p => {
-                const mainImage = p.images && p.images.length > 0 ? p.images[0] : p.image_url;
+                const img = p.images && p.images.length > 0 ? p.images[0] : p.image_url;
                 return `<tr>
-                    <td><img src="${mainImage}" alt="${p.name}"></td>
+                    <td><img src="${img}" alt="${p.name}"></td>
                     <td><strong>${p.name}</strong></td>
                     <td>$${p.price.toFixed(2)}</td>
                     <td>${p.stock}</td>
-                    <td><span class="status-badge status-${p.status || 'active'}">${p.status || 'active'}</span></td>
+                    <td><span class="status-${p.status || 'active'}">${p.status || 'active'}</span></td>
                     <td>
                         <button class="edit-btn" onclick="editProduct(${p.id})">Edit</button>
                         <button class="delete-btn" onclick="deleteProduct(${p.id})">Delete</button>
@@ -309,14 +380,12 @@ function displayProducts() {
                 </tr>`;
             }).join('')}
         </tbody>
-    </table>`;
+    </table></div>`;
 }
 
-// Search and filter
 document.getElementById('product-search')?.addEventListener('input', displayProducts);
 document.getElementById('status-filter')?.addEventListener('change', displayProducts);
 
-// Add product
 document.getElementById('add-product-btn').addEventListener('click', async () => {
     await loadCategories();
     await loadTags();
@@ -326,59 +395,21 @@ document.getElementById('add-product-btn').addEventListener('click', async () =>
     document.getElementById('product-modal-title').textContent = 'Add Product';
     document.getElementById('product-form').reset();
     document.getElementById('product-id').value = '';
-    document.getElementById('images-preview').innerHTML = '';
-    uploadedImages = [];
+    productImages = [];
+    displayProductImages();
     document.getElementById('product-modal').classList.add('active');
 });
 
 function populateCategorySelect() {
-    const select = document.getElementById('product-categories');
-    select.innerHTML = allCategories.map(cat => 
-        `<option value="${cat.id}">${cat.name}</option>`
-    ).join('');
+    document.getElementById('product-categories').innerHTML = 
+        allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 }
 
 function populateTagSelect() {
-    const select = document.getElementById('product-tags');
-    select.innerHTML = allTags.map(tag => 
-        `<option value="${tag.id}">${tag.name}</option>`
-    ).join('');
+    document.getElementById('product-tags').innerHTML = 
+        allTags.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
 }
 
-// Image upload
-document.getElementById('product-images-upload').addEventListener('change', (e) => {
-    const files = Array.from(e.target.files);
-    const preview = document.getElementById('images-preview');
-    
-    files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const div = document.createElement('div');
-            div.className = 'image-preview-item';
-            div.innerHTML = `
-                <img src="${e.target.result}">
-                <button type="button" class="remove-image" onclick="this.parentElement.remove()">×</button>
-            `;
-            preview.appendChild(div);
-        };
-        reader.readAsDataURL(file);
-    });
-});
-
-async function uploadImages(files) {
-    const urls = [];
-    for (const file of files) {
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}-${file.name}`;
-        const { error } = await supabase.storage.from('product-images').upload(fileName, file);
-        if (error) throw error;
-        
-        const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(fileName);
-        urls.push(publicUrl);
-    }
-    return urls;
-}
-
-// Save product
 document.getElementById('product-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button[type="submit"]');
@@ -386,43 +417,16 @@ document.getElementById('product-form').addEventListener('submit', async (e) => 
     btn.textContent = 'Saving...';
     
     try {
-        const productId = document.getElementById('product-id').value;
-        
-        // Get images
-        let imageUrls = [];
-        const files = document.getElementById('product-images-upload').files;
-        if (files.length > 0) {
-            imageUrls = await uploadImages(Array.from(files));
-        }
-        
-        const manualUrls = document.getElementById('product-image-urls').value
-            .split('\n')
-            .map(url => url.trim())
-            .filter(url => url);
-        
-        imageUrls = [...imageUrls, ...manualUrls];
-        
-        if (imageUrls.length === 0 && !productId) {
-            alert('Please add at least one image');
-            btn.disabled = false;
-            btn.textContent = 'Save Product';
-            return;
-        }
-        
-        // Get categories
-        const catSelect = document.getElementById('product-categories');
-        const categoryIds = Array.from(catSelect.selectedOptions).map(opt => parseInt(opt.value));
-        
-        // Get tags
-        const tagSelect = document.getElementById('product-tags');
-        const tagIds = Array.from(tagSelect.selectedOptions).map(opt => parseInt(opt.value));
-        
-        // Generate slug
+        const id = document.getElementById('product-id').value;
         const name = document.getElementById('product-name').value;
-        let slug = document.getElementById('product-slug').value.trim();
-        if (!slug) {
-            slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        }
+        
+        const catSelect = document.getElementById('product-categories');
+        const categoryIds = Array.from(catSelect.selectedOptions).map(o => parseInt(o.value));
+        
+        const tagSelect = document.getElementById('product-tags');
+        const tagIds = Array.from(tagSelect.selectedOptions).map(o => parseInt(o.value));
+        
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         
         const productData = {
             name,
@@ -433,30 +437,28 @@ document.getElementById('product-form').addEventListener('submit', async (e) => 
             features: document.getElementById('product-features').value,
             category_ids: categoryIds,
             tag_ids: tagIds,
-            images: imageUrls,
-            image_url: imageUrls[0] || null, // Keep for backwards compatibility
-            seo_title: document.getElementById('product-seo-title').value || null,
-            seo_description: document.getElementById('product-seo-description').value || null,
-            seo_keywords: document.getElementById('product-seo-keywords').value || null,
+            images: productImages,
+            image_url: productImages[0] || null,
+            seo_title: document.getElementById('seo-title').value || null,
+            seo_description: document.getElementById('seo-description').value || null,
+            seo_keywords: document.getElementById('seo-keywords').value || null,
             slug
         };
         
-        if (productId) {
-            await supabase.from('products').update(productData).eq('id', productId);
+        if (id) {
+            await supabase.from('products').update(productData).eq('id', id);
         } else {
             await supabase.from('products').insert([productData]);
         }
         
         closeProductModal();
         loadProductsTable();
-        alert(productId ? 'Product updated!' : 'Product added!');
-        
+        alert('Saved!');
     } catch (error) {
-        console.error(error);
         alert('Error: ' + error.message);
     } finally {
         btn.disabled = false;
-        btn.textContent = 'Save Product';
+        btn.textContent = 'Save';
     }
 });
 
@@ -464,11 +466,8 @@ async function editProduct(id) {
     await loadCategories();
     await loadTags();
     
-    const { data, error } = await supabase.from('products').select('*').eq('id', id).single();
-    if (error) {
-        alert('Error loading product');
-        return;
-    }
+    const { data } = await supabase.from('products').select('*').eq('id', id).single();
+    if (!data) return;
     
     populateCategorySelect();
     populateTagSelect();
@@ -481,12 +480,10 @@ async function editProduct(id) {
     document.getElementById('product-status').value = data.status || 'active';
     document.getElementById('product-description').value = data.description;
     document.getElementById('product-features').value = data.features || '';
-    document.getElementById('product-seo-title').value = data.seo_title || '';
-    document.getElementById('product-seo-description').value = data.seo_description || '';
-    document.getElementById('product-seo-keywords').value = data.seo_keywords || '';
-    document.getElementById('product-slug').value = data.slug || '';
+    document.getElementById('seo-title').value = data.seo_title || '';
+    document.getElementById('seo-description').value = data.seo_description || '';
+    document.getElementById('seo-keywords').value = data.seo_keywords || '';
     
-    // Set categories
     if (data.category_ids) {
         const catSelect = document.getElementById('product-categories');
         Array.from(catSelect.options).forEach(opt => {
@@ -494,7 +491,6 @@ async function editProduct(id) {
         });
     }
     
-    // Set tags
     if (data.tag_ids) {
         const tagSelect = document.getElementById('product-tags');
         Array.from(tagSelect.options).forEach(opt => {
@@ -502,26 +498,14 @@ async function editProduct(id) {
         });
     }
     
-    // Show images
-    const preview = document.getElementById('images-preview');
-    preview.innerHTML = '';
-    if (data.images && data.images.length > 0) {
-        data.images.forEach(url => {
-            const div = document.createElement('div');
-            div.className = 'image-preview-item';
-            div.innerHTML = `
-                <img src="${url}">
-                <button type="button" class="remove-image" onclick="this.parentElement.remove()">×</button>
-            `;
-            preview.appendChild(div);
-        });
-    }
+    productImages = data.images || [];
+    displayProductImages();
     
     document.getElementById('product-modal').classList.add('active');
 }
 
 async function deleteProduct(id) {
-    if (!confirm('Delete this product?')) return;
+    if (!confirm('Delete?')) return;
     await supabase.from('products').delete().eq('id', id);
     loadProductsTable();
 }
