@@ -55,6 +55,7 @@
             <div class="container">
                 <div class="admin-tabs">
                     <button class="tab-btn active" data-tab="products">Products</button>
+                    <button class="tab-btn" data-tab="orders">Orders</button>
                     <button class="tab-btn" data-tab="categories">Categories</button>
                     <button class="tab-btn" data-tab="tags">Tags</button>
                 </div>
@@ -74,6 +75,26 @@
                         </select>
                     </div>
                     <div id="products-table"></div>
+                </div>
+
+                <!-- Orders -->
+                <div id="orders-tab" class="tab-content">
+                    <div class="admin-header">
+                        <div>
+                            <h1>Orders</h1>
+                            <p>All customer purchases</p>
+                        </div>
+                    </div>
+                    <div class="admin-toolbar">
+                        <input type="text" id="order-search" placeholder="Search by email or name..." class="search-input">
+                        <select id="order-date-filter" class="filter-select">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                    <div id="orders-table"></div>
                 </div>
 
                 <!-- Categories -->

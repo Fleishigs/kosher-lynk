@@ -69,6 +69,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         
         if (tab === 'categories') loadCategoriesTable();
         if (tab === 'tags') loadTagsTable();
+        if (tab === 'orders') loadOrdersTable();
     });
 });
 
@@ -619,3 +620,165 @@ async function deleteProduct(id) {
 function closeProductModal() {
     document.getElementById('product-modal').classList.remove('active');
 }
+
+// ========== ORDERS ==========
+let allOrders = [];
+
+async function loadOrdersTable() {
+    try {
+        const { data, error } = await supabase
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        allOrders = data || [];
+        displayOrders();
+    } catch (error) {
+        console.error('Error loading orders:', error);
+        document.getElementById('orders-table').innerHTML = '<p style="padding: 3rem; text-align: center;">Error loading orders</p>';
+    }
+}
+
+function displayOrders() {
+    const search = document.getElementById('order-search')?.value.toLowerCase() || '';
+    const dateFilter = document.getElementById('order-date-filter')?.value || 'all';
+    
+    let filtered = allOrders.filter(order => {
+        const matchesSearch = 
+            order.customer_email.toLowerCase().includes(search) ||
+            order.customer_name.toLowerCase().includes(search) ||
+            order.product_name.toLowerCase().includes(search);
+        
+        let matchesDate = true;
+        if (dateFilter !== 'all') {
+            const orderDate = new Date(order.created_at);
+            const now = new Date();
+            
+            if (dateFilter === 'today') {
+                matchesDate = orderDate.toDateString() === now.toDateString();
+            } else if (dateFilter === 'week') {
+                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                matchesDate = orderDate >= weekAgo;
+            } else if (dateFilter === 'month') {
+                matchesDate = orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+            }
+        }
+        
+        return matchesSearch && matchesDate;
+    });
+    
+    const table = document.getElementById('orders-table');
+    
+    if (filtered.length === 0) {
+        table.innerHTML = '<p style="padding: 3rem; text-align: center;">No orders found</p>';
+        return;
+    }
+    
+    // Calculate total revenue
+    const totalRevenue = filtered.reduce((sum, order) => sum + parseFloat(order.total_price), 0);
+    
+    table.innerHTML = `
+        <div class="orders-stats">
+            <div class="stat-card">
+                <div class="stat-value">${filtered.length}</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">$${totalRevenue.toFixed(2)}</div>
+                <div class="stat-label">Revenue</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">$${(totalRevenue / filtered.length).toFixed(2)}</div>
+                <div class="stat-label">Avg Order Value</div>
+            </div>
+        </div>
+        <div class="products-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Product</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${filtered.map(order => `
+                        <tr>
+                            <td>${new Date(order.created_at).toLocaleDateString()}<br><small>${new Date(order.created_at).toLocaleTimeString()}</small></td>
+                            <td>
+                                <strong>${order.customer_name}</strong><br>
+                                <small>${order.customer_email}</small>
+                            </td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    ${order.product_image ? `<img src="${order.product_image}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 4px;">` : ''}
+                                    <div>
+                                        <strong>${order.product_name}</strong><br>
+                                        <small>Qty: ${order.quantity}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><strong>$${parseFloat(order.total_price).toFixed(2)}</strong></td>
+                            <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                            <td><button class="btn btn-sm btn-secondary" onclick="viewOrderDetails(${order.id})">View</button></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function viewOrderDetails(orderId) {
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order) return;
+    
+    const address = order.shipping_address || {};
+    const addressText = address.line1 ? 
+        `${address.line1}${address.line2 ? ', ' + address.line2 : ''}<br>${address.city}, ${address.state} ${address.postal_code}<br>${address.country}` :
+        'No address provided';
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.innerHTML = `
+        <div class="modal-overlay" onclick="this.parentElement.remove()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+            <h2>Order #${order.id}</h2>
+            <div class="order-details">
+                <div class="order-section">
+                    <h3>Customer Information</h3>
+                    <p><strong>Name:</strong> ${order.customer_name}</p>
+                    <p><strong>Email:</strong> ${order.customer_email}</p>
+                    <p><strong>Shipping Address:</strong><br>${addressText}</p>
+                </div>
+                <div class="order-section">
+                    <h3>Order Details</h3>
+                    <p><strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}</p>
+                    <p><strong>Product:</strong> ${order.product_name}</p>
+                    <p><strong>Quantity:</strong> ${order.quantity}</p>
+                    <p><strong>Total:</strong> $${parseFloat(order.total_price).toFixed(2)}</p>
+                    <p><strong>Status:</strong> ${order.status}</p>
+                </div>
+                <div class="order-section">
+                    <h3>Payment Info</h3>
+                    <p><strong>Stripe Session:</strong> <code>${order.stripe_session_id}</code></p>
+                    <p><strong>Payment Intent:</strong> <code>${order.stripe_payment_intent || 'N/A'}</code></p>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Close</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+document.getElementById('order-search')?.addEventListener('input', displayOrders);
+document.getElementById('order-date-filter')?.addEventListener('change', displayOrders);
+
