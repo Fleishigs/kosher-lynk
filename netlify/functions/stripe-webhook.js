@@ -60,9 +60,9 @@ exports.handler = async (event) => {
 
         if (updateError) throw updateError;
         
-        console.log(`Updated product ${productId} stock to ${newStock}`);
+        console.log(`Product ${productId}: Stock decreased to ${newStock}`);
       } else {
-        console.log(`Product ${productId} has unlimited stock (track_inventory = false)`);
+        console.log(`Product ${productId}: Unlimited stock (track_inventory disabled)`);
       }
 
       // Save order to database (only if orders table exists)
@@ -86,12 +86,11 @@ exports.handler = async (event) => {
         };
 
         await supabase.from('orders').insert([orderData]);
+        console.log(`Order saved for product ${productId}`);
       } catch (orderError) {
-        console.error('Error saving order (table may not exist yet):', orderError);
+        console.error('Error saving order:', orderError.message);
         // Don't fail webhook if orders table doesn't exist
       }
-
-      console.log(`Updated product ${productId} stock to ${newStock}`);
     } catch (error) {
       console.error('Error updating stock:', error);
       return { statusCode: 500, body: 'Error updating stock' };
