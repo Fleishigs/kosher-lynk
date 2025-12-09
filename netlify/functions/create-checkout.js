@@ -8,16 +8,23 @@ exports.handler = async (event) => {
   try {
     const { productId, productName, productPrice, productImage } = JSON.parse(event.body);
 
+    // Build product_data - only include images if they exist
+    const productData = {
+      name: productName
+    };
+    
+    // Only add images array if productImage exists and is not empty
+    if (productImage && productImage.trim() !== '') {
+      productData.images = [productImage];
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
             currency: 'usd',
-            product_data: {
-              name: productName,
-              images: [productImage],
-            },
+            product_data: productData,
             unit_amount: Math.round(productPrice * 100), // Convert to cents
           },
           quantity: 1,
