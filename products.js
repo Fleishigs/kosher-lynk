@@ -31,7 +31,8 @@ async function loadProducts() {
         .eq('status', 'active')
         .order('created_at', { ascending: false });
     
-    // Filter to only show products with stock OR unlimited inventory
+    // Filter to show products with stock OR unlimited inventory
+    // Default track_inventory to true if undefined
     allProducts = (data || []).filter(p => 
         p.stock > 0 || p.track_inventory === false
     );

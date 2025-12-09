@@ -544,7 +544,7 @@ document.getElementById('product-form').addEventListener('submit', async (e) => 
             name,
             price: parseFloat(document.getElementById('product-price').value),
             stock: parseInt(document.getElementById('product-stock').value),
-            track_inventory: document.getElementById('track-inventory').checked,
+            track_inventory: document.getElementById('track-inventory')?.checked ?? true,
             status: document.getElementById('product-status').value,
             description: document.getElementById('product-description').value,
             features: document.getElementById('product-features').value,
@@ -587,7 +587,9 @@ async function editProduct(id) {
     document.getElementById('product-name').value = data.name;
     document.getElementById('product-price').value = data.price;
     document.getElementById('product-stock').value = data.stock;
-    document.getElementById('track-inventory').checked = data.track_inventory !== false; // Default true
+    if (document.getElementById('track-inventory')) {
+        document.getElementById('track-inventory').checked = data.track_inventory !== false;
+    }
     document.getElementById('product-status').value = data.status || 'active';
     document.getElementById('product-description').value = data.description;
     document.getElementById('product-features').value = data.features || '';
