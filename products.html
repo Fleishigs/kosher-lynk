@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Products - KosherLynk</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <nav class="nav">
@@ -28,19 +27,22 @@
     <main>
         <section class="page-hero">
             <div class="container">
-                <h1>Our Phones</h1>
-                <p>Simple devices for intentional living</p>
+                <h1>Our Collection</h1>
             </div>
         </section>
 
         <section class="products-section">
             <div class="container">
-                <div class="filters">
-                    <button class="filter-btn active" data-filter="all">All</button>
-                    <div id="category-filters"></div>
+                <div class="filters-section">
+                    <div class="filters" id="filters">
+                        <button class="filter-btn active" data-category="all">All Phones</button>
+                        <!-- Categories loaded dynamically -->
+                    </div>
                 </div>
 
-                <div id="products-grid" class="products-grid"></div>
+                <div id="products-grid" class="products-grid">
+                    <!-- Loaded from Supabase via products.js -->
+                </div>
             </div>
         </section>
     </main>
@@ -57,17 +59,7 @@
                         </svg>
                         <span>KosherLynk</span>
                     </div>
-                    <p>Simple phones for intentional living</p>
-                </div>
-                <div class="footer-links">
-                    <div class="footer-column">
-                        <h4>Product</h4>
-                        <a href="products.html">All Phones</a>
-                    </div>
-                    <div class="footer-column">
-                        <h4>Support</h4>
-                        <a href="contact.html">Contact Us</a>
-                    </div>
+                    <p>Premium phones for intentional living</p>
                 </div>
             </div>
             <div class="footer-bottom">

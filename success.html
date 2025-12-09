@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Successful - KosherLynk</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <nav class="nav">
@@ -26,17 +25,16 @@
     </nav>
 
     <main>
-        <section class="page-hero">
-            <div class="container">
-                <div style="text-align: center; padding: 4rem 0;">
-                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" style="margin: 0 auto 2rem;">
-                        <circle cx="12" cy="12" r="10" fill="#10B981"/>
-                        <path d="M8 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <section class="page-hero" style="min-height: 70vh; display: flex; align-items: center; justify-content: center;">
+            <div class="container" style="text-align: center;">
+                <div class="success-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <path d="M20 6L9 17l-5-5"/>
                     </svg>
-                    <h1 style="margin-bottom: 1rem;">Payment Successful!</h1>
-                    <p style="font-size: 1.25rem; color: var(--text-light); margin-bottom: 2rem;">Thank you for your purchase. We'll send you a confirmation email shortly.</p>
-                    <a href="products.html" class="btn btn-primary">Continue Shopping</a>
                 </div>
+                <h1 style="margin-bottom: 1rem;">Payment Successful!</h1>
+                <p style="font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 2rem;">Thank you for your purchase. We'll send you a confirmation email shortly.</p>
+                <a href="/products" class="btn btn-primary">Continue Shopping</a>
             </div>
         </section>
     </main>
@@ -53,7 +51,7 @@
                         </svg>
                         <span>KosherLynk</span>
                     </div>
-                    <p>Simple phones for intentional living</p>
+                    <p>Premium phones for intentional living</p>
                 </div>
             </div>
             <div class="footer-bottom">

@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KosherLynk - Simple Phones for Modern Living</title>
+    <title>KosherLynk - Premium Simple Phones</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <nav class="nav">
@@ -28,15 +25,14 @@
     </nav>
 
     <main>
-        <!-- Hero Section -->
         <section class="hero">
             <div class="hero-container">
                 <div class="hero-content">
-                    <div class="hero-badge">Simple Communication</div>
-                    <h1>Stay connected.<br>Stay focused.</h1>
-                    <p>Premium phones designed for intentional living. No apps, no distractions—just the connections that matter.</p>
+                    <div class="hero-badge">Premium Simple Phones</div>
+                    <h1>Focus.<br>Connect.<br>Live Better.</h1>
+                    <p>Professional phones designed for intentional living. No apps, no distractions—just communication that respects your time.</p>
                     <div class="hero-buttons">
-                        <a href="products.html" class="btn btn-primary">Browse Phones</a>
+                        <a href="/products" class="btn btn-primary btn-large">View Collection</a>
                         <a href="#why" class="btn btn-secondary">Learn More</a>
                     </div>
                 </div>
@@ -48,30 +44,30 @@
             </div>
         </section>
 
-        <!-- Stats Section -->
         <section class="stats">
             <div class="container">
-                <div class="stat-card">
-                    <div class="stat-number">500+</div>
-                    <div class="stat-label">Happy Customers</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">98%</div>
-                    <div class="stat-label">Satisfaction Rate</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">24/7</div>
-                    <div class="stat-label">Customer Support</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                    <div class="stat-card">
+                        <div class="stat-number">10K+</div>
+                        <div class="stat-label">Happy Customers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">30</div>
+                        <div class="stat-label">Days Battery Life</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Satisfaction Rate</div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Why Section -->
         <section class="why" id="why">
             <div class="container">
                 <div class="section-header">
-                    <h2>Why choose simplicity?</h2>
-                    <p>Reclaim your time and attention from endless scrolling</p>
+                    <h2>Why Choose Simple?</h2>
+                    <p>Built for people who value their time and attention</p>
                 </div>
 
                 <div class="features-grid">
@@ -82,7 +78,7 @@
                             </svg>
                         </div>
                         <h3>Protected Focus</h3>
-                        <p>No internet, no apps, no distractions. Just calls and texts that keep you connected to what matters.</p>
+                        <p>No internet, no apps, no distractions. Just calls and texts that keep you connected to what matters most.</p>
                     </div>
 
                     <div class="feature-card">
@@ -91,8 +87,8 @@
                                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                             </svg>
                         </div>
-                        <h3>Battery Life</h3>
-                        <p>Charge once, use for weeks. Our phones are built for reliability, not constant charging.</p>
+                        <h3>Extended Battery</h3>
+                        <p>Up to 30 days on a single charge. Technology that respects your time instead of demanding constant attention.</p>
                     </div>
 
                     <div class="feature-card">
@@ -104,35 +100,31 @@
                                 <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                             </svg>
                         </div>
-                        <h3>Community Trusted</h3>
-                        <p>Chosen by families, communities, and individuals seeking digital wellness and intentional technology use.</p>
+                        <h3>Premium Quality</h3>
+                        <p>Built with premium materials and timeless design. These phones are made to last years, not just seasons.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Featured Products -->
         <section class="featured">
             <div class="container">
                 <div class="section-header">
                     <h2>Featured Devices</h2>
-                    <a href="products.html" class="link-arrow">View all →</a>
+                    <a href="/products" class="link-arrow">View all →</a>
                 </div>
 
                 <div id="featured-grid" class="products-grid">
-                    <!-- Loaded from Supabase -->
+                    <!-- Loaded from Supabase via app.js -->
                 </div>
             </div>
         </section>
 
-        <!-- CTA Section -->
         <section class="cta">
-            <div class="container">
-                <div class="cta-content">
-                    <h2>Ready to simplify?</h2>
-                    <p>Join hundreds of others who've chosen intentional communication</p>
-                    <a href="products.html" class="btn btn-primary btn-large">Explore Our Phones</a>
-                </div>
+            <div class="cta-content">
+                <h2>Ready to Simplify?</h2>
+                <p>Join thousands who've chosen intentional communication</p>
+                <a href="/products" class="btn btn-primary btn-large">Explore Our Phones</a>
             </div>
         </section>
     </main>
@@ -149,21 +141,19 @@
                         </svg>
                         <span>KosherLynk</span>
                     </div>
-                    <p>Simple phones for intentional living</p>
+                    <p>Premium phones for intentional living</p>
                 </div>
-                <div class="footer-links">
-                    <div class="footer-column">
-                        <h4>Product</h4>
-                        <a href="products.html">All Phones</a>
-                        <a href="products.html?filter=basic">Basic Phones</a>
-                        <a href="products.html?filter=flip">Flip Phones</a>
-                    </div>
-                    <div class="footer-column">
-                        <h4>Support</h4>
-                        <a href="contact.html">Contact Us</a>
-                        <a href="#">FAQ</a>
-                        <a href="#">Shipping Info</a>
-                    </div>
+                <div class="footer-column">
+                    <h4>Product</h4>
+                    <a href="/products">All Phones</a>
+                    <a href="/products?filter=basic">Basic Phones</a>
+                    <a href="/products?filter=flip">Flip Phones</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <a href="/contact">Contact Us</a>
+                    <a href="#">FAQ</a>
+                    <a href="#">Shipping Info</a>
                 </div>
             </div>
             <div class="footer-bottom">
