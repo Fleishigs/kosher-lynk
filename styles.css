@@ -1,6 +1,6 @@
 /* ========================================
    KOSHERLYNK - DARK PREMIUM REDESIGN
-   Zero Logic Changes - Pure UI Overhaul
+   FIXED VERSION - All Elements Working
    ======================================== */
 
 :root {
@@ -19,6 +19,7 @@
     --text: #ffffff;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
+    --text-light: #64748b;
     
     --radius: 16px;
     --radius-lg: 24px;
@@ -419,7 +420,7 @@ body {
 
 .products-section {
     padding: 6rem 2rem;
-    background: var(--surface);
+    background: var(--bg);
 }
 
 .featured {
@@ -439,7 +440,9 @@ body {
     border-radius: var(--radius-lg);
     overflow: hidden;
     transition: var(--transition);
-    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
 }
 
 .product-card:hover {
@@ -448,7 +451,8 @@ body {
     box-shadow: 0 20px 40px rgba(0,0,0,0.5), var(--shadow-glow);
 }
 
-.product-image {
+/* Product Image Container - CRITICAL FOR JS */
+.product-image-container {
     width: 100%;
     height: 300px;
     background: var(--surface);
@@ -459,15 +463,40 @@ body {
     position: relative;
 }
 
-.product-image img {
+.product-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s;
 }
 
-.product-card:hover .product-image img {
+.product-card:hover .product-image {
     transform: scale(1.05);
+}
+
+/* Image Dots for Slider */
+.image-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 2;
+}
+
+.image-dots .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    transition: all 0.3s;
+}
+
+.image-dots .dot.active {
+    background: var(--accent);
+    width: 24px;
+    border-radius: 4px;
 }
 
 .product-info {
@@ -477,15 +506,58 @@ body {
 .product-name {
     font-size: 1.25rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     color: var(--text);
+}
+
+/* Product Categories - CRITICAL FOR JS */
+.product-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.cat-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(59,130,246,0.1);
+    color: var(--accent);
+    border: 1px solid var(--border);
+}
+
+/* Product Description */
+.product-description {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+}
+
+/* Product Tags - CRITICAL FOR JS */
+.product-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.tag-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(59,130,246,0.05);
+    color: var(--text-muted);
+    border: 1px solid rgba(59,130,246,0.1);
 }
 
 .product-price {
     font-size: 1.75rem;
     font-weight: 700;
     color: var(--accent);
-    margin-bottom: 1rem;
 }
 
 .product-stock {
@@ -508,7 +580,7 @@ body {
     border: 1px solid rgba(239,68,68,0.3);
 }
 
-/* Product Meta (Categories/Tags) */
+/* Product Meta (for single product page) */
 .product-meta {
     display: flex;
     flex-wrap: wrap;
@@ -516,14 +588,11 @@ body {
     margin-bottom: 1rem;
 }
 
-.cat-badge, .tag-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 50px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: rgba(59,130,246,0.1);
-    color: var(--accent);
-    border: 1px solid var(--border);
+.product-meta-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
 }
 
 /* ========================================
@@ -605,13 +674,6 @@ body {
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 1rem;
-}
-
-.product-meta-categories {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
 }
 
 .product-price-large {
@@ -758,6 +820,11 @@ body {
     margin-top: 1rem;
 }
 
+.footer-links {
+    display: flex;
+    gap: 4rem;
+}
+
 .footer-column h4 {
     font-size: 1rem;
     font-weight: 600;
@@ -867,12 +934,12 @@ body {
 }
 
 /* ========================================
-   FILTERS (Products Page)
+   FILTERS (Products Page) - CRITICAL FOR JS
    ======================================== */
 
 .filters-section {
     padding: 2rem;
-    background: var(--surface);
+    background: var(--surface-elevated);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     margin-bottom: 3rem;
@@ -885,6 +952,13 @@ body {
     align-items: center;
 }
 
+/* Category Filters Container - CRITICAL FOR JS */
+#category-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
 .filter-btn {
     padding: 0.75rem 1.5rem;
     background: transparent;
@@ -894,6 +968,8 @@ body {
     cursor: pointer;
     transition: var(--transition);
     font-weight: 500;
+    font-family: inherit;
+    font-size: 1rem;
 }
 
 .filter-btn:hover,
@@ -952,10 +1028,8 @@ body {
     .hero-buttons {
         flex-direction: column;
     }
+    
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
 }
-
-/* ========================================
-   ADMIN DASHBOARD (Untouched - Keep Original Styles)
-   ======================================== */
-
-/* Admin styles remain unchanged - not included in redesign */

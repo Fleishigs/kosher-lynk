@@ -34,14 +34,14 @@
         <section class="products-section">
             <div class="container">
                 <div class="filters-section">
-                    <div class="filters" id="filters">
-                        <button class="filter-btn active" data-category="all">All Phones</button>
-                        <!-- Categories loaded dynamically -->
+                    <div class="filters">
+                        <button class="filter-btn active" data-filter="all">All Phones</button>
+                        <div id="category-filters"></div>
                     </div>
                 </div>
 
                 <div id="products-grid" class="products-grid">
-                    <!-- Loaded from Supabase via products.js -->
+                    <!-- Products loaded by products.js -->
                 </div>
             </div>
         </section>
