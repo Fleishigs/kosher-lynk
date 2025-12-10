@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - KosherLynk</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
 </head>
 <body>
-    <!-- Login -->
+    <!-- Login Screen -->
     <div id="login-screen" class="admin-login">
         <div class="login-box">
             <div class="login-header">
@@ -29,97 +28,133 @@
                     <label>Password</label>
                     <input type="password" id="admin-password" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-large">Login</button>
+                <button type="submit" class="btn btn-primary btn-full">Login</button>
             </form>
             <div id="login-error" class="error-message"></div>
         </div>
     </div>
 
-    <!-- Dashboard -->
+    <!-- Dashboard with Sidebar -->
     <div id="admin-dashboard" class="admin-dashboard" style="display: none;">
-        <nav class="admin-nav">
-            <div class="nav-container">
-                <div class="logo">
-                    <svg viewBox="0 0 40 40" class="logo-icon">
-                        <rect x="8" y="5" width="24" height="30" rx="4" fill="currentColor"/>
-                        <rect x="12" y="9" width="16" height="18" rx="2" fill="white"/>
-                        <circle cx="20" cy="31" r="2" fill="white"/>
+        <!-- Sidebar -->
+        <div class="admin-sidebar">
+            <div class="logo">
+                <svg viewBox="0 0 40 40" class="logo-icon">
+                    <rect x="8" y="5" width="24" height="30" rx="4" fill="currentColor"/>
+                    <rect x="12" y="9" width="16" height="18" rx="2" fill="white"/>
+                    <circle cx="20" cy="31" r="2" fill="white"/>
+                </svg>
+                <span>KosherLynk</span>
+            </div>
+
+            <div class="admin-menu">
+                <button class="admin-menu-item tab-btn active" data-tab="products">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <path d="M21 15l-5-5L5 21"/>
                     </svg>
-                    <span>KosherLynk Admin</span>
-                </div>
-                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+                    <span>Products</span>
+                </button>
+
+                <button class="admin-menu-item tab-btn" data-tab="orders">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="21" r="1"/>
+                        <circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+                    <span>Orders</span>
+                </button>
+
+                <button class="admin-menu-item tab-btn" data-tab="categories">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/>
+                    </svg>
+                    <span>Categories</span>
+                </button>
+
+                <button class="admin-menu-item tab-btn" data-tab="tags">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                        <line x1="7" y1="7" x2="7.01" y2="7"/>
+                    </svg>
+                    <span>Tags</span>
+                </button>
             </div>
-        </nav>
 
-        <main class="admin-main">
-            <div class="container">
-                <div class="admin-tabs">
-                    <button class="tab-btn active" data-tab="products">Products</button>
-                    <button class="tab-btn" data-tab="orders">Orders</button>
-                    <button class="tab-btn" data-tab="categories">Categories</button>
-                    <button class="tab-btn" data-tab="tags">Tags</button>
-                </div>
-
-                <!-- Products -->
-                <div id="products-tab" class="tab-content active">
-                    <div class="admin-header">
-                        <div><h1>Products</h1></div>
-                        <div style="display: flex; gap: 0.75rem;">
-                            <button id="refresh-products-btn" class="btn btn-secondary">🔄 Refresh</button>
-                            <button id="add-product-btn" class="btn btn-primary">+ Add Product</button>
-                        </div>
-                    </div>
-                    <div class="admin-toolbar">
-                        <input type="text" id="product-search" placeholder="Search products..." class="search-input">
-                        <select id="status-filter" class="filter-select">
-                            <option value="all">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="draft">Draft</option>
-                        </select>
-                    </div>
-                    <div id="products-table"></div>
-                </div>
-
-                <!-- Orders -->
-                <div id="orders-tab" class="tab-content">
-                    <div class="admin-header">
-                        <div>
-                            <h1>Orders</h1>
-                            <p>All customer purchases</p>
-                        </div>
-                        <button id="refresh-orders-btn" class="btn btn-secondary">🔄 Refresh</button>
-                    </div>
-                    <div class="admin-toolbar">
-                        <input type="text" id="order-search" placeholder="Search by email or name..." class="search-input">
-                        <select id="order-date-filter" class="filter-select">
-                            <option value="all">All Time</option>
-                            <option value="today">Today</option>
-                            <option value="week">This Week</option>
-                            <option value="month">This Month</option>
-                        </select>
-                    </div>
-                    <div id="orders-table"></div>
-                </div>
-
-                <!-- Categories -->
-                <div id="categories-tab" class="tab-content">
-                    <div class="admin-header">
-                        <div><h1>Categories</h1></div>
-                        <button id="add-category-btn" class="btn btn-primary">+ Add</button>
-                    </div>
-                    <div id="categories-table"></div>
-                </div>
-
-                <!-- Tags -->
-                <div id="tags-tab" class="tab-content">
-                    <div class="admin-header">
-                        <div><h1>Tags</h1></div>
-                        <button id="add-tag-btn" class="btn btn-primary">+ Add</button>
-                    </div>
-                    <div id="tags-table"></div>
-                </div>
+            <div class="admin-sidebar-footer">
+                <a href="/" class="btn btn-secondary btn-full" style="margin-bottom: 1rem; text-decoration: none; text-align: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    View Store
+                </a>
+                <button id="logout-btn" class="btn btn-danger btn-full">Logout</button>
             </div>
-        </main>
+        </div>
+
+        <!-- Main Content -->
+        <div class="admin-content">
+            <!-- Products Tab -->
+            <div id="products-tab" class="tab-content active">
+                <div class="admin-header">
+                    <div><h1>Products</h1></div>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button id="refresh-products-btn" class="btn btn-secondary">🔄 Refresh</button>
+                        <button id="add-product-btn" class="btn btn-primary">+ Add Product</button>
+                    </div>
+                </div>
+                <div class="admin-toolbar">
+                    <input type="text" id="product-search" placeholder="Search products..." class="search-input">
+                    <select id="status-filter" class="filter-select">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="draft">Draft</option>
+                    </select>
+                </div>
+                <div id="products-table"></div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="orders-tab" class="tab-content">
+                <div class="admin-header">
+                    <div>
+                        <h1>Orders</h1>
+                        <p>All customer purchases</p>
+                    </div>
+                    <button id="refresh-orders-btn" class="btn btn-secondary">🔄 Refresh</button>
+                </div>
+                <div class="admin-toolbar">
+                    <input type="text" id="order-search" placeholder="Search by email or name..." class="search-input">
+                    <select id="order-date-filter" class="filter-select">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+                <div id="orders-table"></div>
+            </div>
+
+            <!-- Categories Tab -->
+            <div id="categories-tab" class="tab-content">
+                <div class="admin-header">
+                    <div><h1>Categories</h1></div>
+                    <button id="add-category-btn" class="btn btn-primary">+ Add</button>
+                </div>
+                <div id="categories-table"></div>
+            </div>
+
+            <!-- Tags Tab -->
+            <div id="tags-tab" class="tab-content">
+                <div class="admin-header">
+                    <div><h1>Tags</h1></div>
+                    <button id="add-tag-btn" class="btn btn-primary">+ Add</button>
+                </div>
+                <div id="tags-table"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Product Modal -->
