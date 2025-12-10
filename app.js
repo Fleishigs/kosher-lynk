@@ -1,48 +1,43 @@
-// Load featured products on homepage
 async function loadFeaturedProducts() {
-    try {
-        const { data, error } = await supabase
-            .from('products')
-            .select('*')
-            .gt('stock', 0)
-            .order('created_at', { ascending: false })
-            .limit(3);
-
-        if (error) throw error;
-
-        const grid = document.getElementById('featured-grid');
-        if (!grid) return;
-
-        if (data && data.length > 0) {
-            grid.innerHTML = data.map(product => createProductCard(product)).join('');
-        } else {
-            grid.innerHTML = '<p style="text-align: center; color: var(--text-light); grid-column: 1 / -1;">No products available yet.</p>';
-        }
-    } catch (error) {
-        console.error('Error loading products:', error);
+    const { data } = await supabase
+        .from('products')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(6);
+    
+    // Filter products with stock OR unlimited inventory
+    const products = (data || []).filter(p => 
+        p.stock > 0 || p.track_inventory === false
+    );
+    
+    const grid = document.getElementById('featured-grid');
+    
+    if (!products || products.length === 0) {
+        grid.innerHTML = '<p style="text-align: center; color: var(--text-secondary); grid-column: 1 / -1;">No products available</p>';
+        return;
     }
+    
+    grid.innerHTML = products.map(product => {
+        const images = product.images && product.images.length > 0 ? product.images : [product.image_url];
+        const mainImage = images[0];
+        const hasImage = mainImage && mainImage.trim() !== '';
+        
+        return `
+            <a href="/product?id=${product.id}" class="product-card">
+                <div class="product-image-container">
+                    ${hasImage ? 
+                        `<img src="${mainImage}" alt="${product.name}" class="product-image">` :
+                        `<div class="product-image-placeholder">No Image</div>`
+                    }
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">${product.name}</h3>
+                    <p class="product-price">$${product.price.toFixed(2)}</p>
+                </div>
+            </a>
+        `;
+    }).join('');
 }
 
-function createProductCard(product) {
-    return `
-        <div class="product-card" onclick="window.location.href='products.html'">
-            <img src="${product.image_url}" alt="${product.name}" class="product-image">
-            <div class="product-info">
-                <h3 class="product-name">${product.name}</h3>
-                <p class="product-description">${truncateText(product.description, 80)}</p>
-                <div class="product-price">$${product.price.toFixed(2)}</div>
-                <div class="product-stock">${product.stock} in stock</div>
-            </div>
-        </div>
-    `;
-}
-
-function truncateText(text, maxLength) {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-}
-
-// Load products on page load
-if (document.getElementById('featured-grid')) {
-    loadFeaturedProducts();
-}
+loadFeaturedProducts();
