@@ -96,7 +96,9 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 
 function showDashboard() {
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-dashboard').style.display = 'grid';
+    const dashboard = document.getElementById('admin-dashboard');
+    // Remove the inline style completely so CSS takes over
+    dashboard.removeAttribute('style');
     loadAll();
 }
 
