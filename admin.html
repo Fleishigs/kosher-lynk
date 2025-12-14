@@ -8,6 +8,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
 </head>
 <body>
+    <script>
+    // Inline backup for mobile menu - loads immediately
+    window.toggleMobileMenu = window.toggleMobileMenu || function() {
+        console.log('🍔 Backup toggleMobileMenu called');
+        const sidebar = document.getElementById('admin-sidebar');
+        const dashboard = document.getElementById('admin-dashboard');
+        if (sidebar && dashboard) {
+            sidebar.classList.toggle('mobile-open');
+            dashboard.classList.toggle('menu-open');
+            console.log('Menu toggled (backup function)');
+        } else {
+            console.error('Elements not found (backup function)');
+        }
+    };
+    </script>
+    
     <!-- Login Screen -->
     <div id="login-screen" class="admin-login">
         <div class="login-box">

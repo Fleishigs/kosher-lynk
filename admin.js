@@ -9,20 +9,34 @@ let cropper = null;
 let productImages = [];
 let primaryImageIndex = 0;
 
-// Mobile menu toggle
-function toggleMobileMenu() {
+// Mobile menu toggle - Make it global
+window.toggleMobileMenu = function() {
+    console.log('🍔 toggleMobileMenu called');
     const sidebar = document.getElementById('admin-sidebar');
     const dashboard = document.getElementById('admin-dashboard');
+    
+    console.log('Sidebar found:', !!sidebar);
+    console.log('Dashboard found:', !!dashboard);
+    
     if (sidebar && dashboard) {
         const isOpen = sidebar.classList.toggle('mobile-open');
+        console.log('Menu is now:', isOpen ? 'OPEN ✅' : 'CLOSED ❌');
+        console.log('Sidebar classes:', sidebar.className);
+        
         // Toggle dashboard class for overlay
         if (isOpen) {
             dashboard.classList.add('menu-open');
+            console.log('Added menu-open to dashboard');
         } else {
             dashboard.classList.remove('menu-open');
+            console.log('Removed menu-open from dashboard');
         }
+    } else {
+        console.error('❌ ERROR: Could not find elements!');
+        if (!sidebar) console.error('Sidebar not found!');
+        if (!dashboard) console.error('Dashboard not found!');
     }
-}
+};
 
 // Close mobile menu when clicking overlay
 document.addEventListener('click', (e) => {

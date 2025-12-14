@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Menu Debug</title>
+    <style>
+        body { 
+            margin: 0; 
+            font-family: sans-serif;
+            padding: 1rem;
+            background: #f5f5f5;
+        }
+        
+        #debug-output {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #000;
+            color: #0f0;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            max-height: 30vh;
+            overflow-y: auto;
+            z-index: 99999;
+            border-bottom: 3px solid #0f0;
+        }
+        
+        #content {
+            margin-top: calc(30vh + 2rem);
+        }
+        
+        .test-btn {
+            display: block;
+            width: 100%;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            background: #2C5F2D;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .info-box {
+            background: white;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div id="debug-output">
+        <div>🐛 DEBUG OUTPUT (scroll for logs)</div>
+        <div id="logs"></div>
+    </div>
+    
+    <div id="content">
+        <h1>Mobile Menu Debugger</h1>
+        
+        <button class="test-btn" onclick="testFunction()">
+            1️⃣ Test if toggleMobileMenu exists
+        </button>
+        
+        <button class="test-btn" onclick="testElements()">
+            2️⃣ Test if elements exist
+        </button>
+        
+        <button class="test-btn" onclick="testCSS()">
+            3️⃣ Test CSS classes
+        </button>
+        
+        <button class="test-btn" onclick="window.toggleMobileMenu()">
+            4️⃣ Actually toggle menu
+        </button>
+        
+        <div class="info-box">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Press each button in order</li>
+                <li>Watch the debug output at the top</li>
+                <li>This will show EXACTLY what's failing</li>
+            </ol>
+        </div>
+    </div>
+    
+    <!-- Hidden dashboard structure for testing -->
+    <div id="admin-dashboard" class="admin-dashboard" style="display: none;">
+        <div class="admin-sidebar" id="admin-sidebar">
+            <h2>Sidebar Content</h2>
+        </div>
+        <div class="admin-content">
+            <p>Main content</p>
+        </div>
+    </div>
+
+    <script>
+        const logs = document.getElementById('logs');
+        
+        function log(msg, color = '#0f0') {
+            const div = document.createElement('div');
+            div.style.color = color;
+            div.textContent = new Date().toLocaleTimeString() + ' - ' + msg;
+            logs.appendChild(div);
+            logs.scrollTop = logs.scrollHeight;
+            console.log(msg);
+        }
+        
+        // Define toggle function
+        window.toggleMobileMenu = function() {
+            log('🍔 toggleMobileMenu called!', '#00ff00');
+            const sidebar = document.getElementById('admin-sidebar');
+            const dashboard = document.getElementById('admin-dashboard');
+            
+            log('Sidebar: ' + (sidebar ? 'FOUND ✅' : 'NOT FOUND ❌'), sidebar ? '#0f0' : '#f00');
+            log('Dashboard: ' + (dashboard ? 'FOUND ✅' : 'NOT FOUND ❌'), dashboard ? '#0f0' : '#f00');
+            
+            if (sidebar && dashboard) {
+                const isOpen = sidebar.classList.toggle('mobile-open');
+                log('Toggled to: ' + (isOpen ? 'OPEN' : 'CLOSED'), '#ff0');
+                
+                if (isOpen) {
+                    dashboard.classList.add('menu-open');
+                    log('Added menu-open class', '#0f0');
+                } else {
+                    dashboard.classList.remove('menu-open');
+                    log('Removed menu-open class', '#0f0');
+                }
+                
+                log('Sidebar classes: ' + sidebar.className, '#0ff');
+                log('Dashboard classes: ' + dashboard.className, '#0ff');
+            } else {
+                log('FAILED: Elements not found!', '#f00');
+            }
+        };
+        
+        function testFunction() {
+            log('=== TEST 1: Function Check ===', '#ff0');
+            log('typeof toggleMobileMenu: ' + typeof window.toggleMobileMenu);
+            if (typeof window.toggleMobileMenu === 'function') {
+                log('✅ Function EXISTS!', '#0f0');
+            } else {
+                log('❌ Function DOES NOT EXIST!', '#f00');
+            }
+        }
+        
+        function testElements() {
+            log('=== TEST 2: Elements Check ===', '#ff0');
+            const sidebar = document.getElementById('admin-sidebar');
+            const dashboard = document.getElementById('admin-dashboard');
+            
+            log('Sidebar element: ' + (sidebar ? '✅ FOUND' : '❌ NOT FOUND'), sidebar ? '#0f0' : '#f00');
+            log('Dashboard element: ' + (dashboard ? '✅ FOUND' : '❌ NOT FOUND'), dashboard ? '#0f0' : '#f00');
+            
+            if (sidebar) {
+                log('Sidebar innerHTML length: ' + sidebar.innerHTML.length);
+                log('Sidebar style.display: ' + sidebar.style.display);
+            }
+            
+            if (dashboard) {
+                log('Dashboard style.display: ' + dashboard.style.display);
+            }
+        }
+        
+        function testCSS() {
+            log('=== TEST 3: CSS Check ===', '#ff0');
+            const sidebar = document.getElementById('admin-sidebar');
+            const dashboard = document.getElementById('admin-dashboard');
+            
+            if (sidebar) {
+                const computed = window.getComputedStyle(sidebar);
+                log('Sidebar position: ' + computed.position);
+                log('Sidebar left: ' + computed.left);
+                log('Sidebar z-index: ' + computed.zIndex);
+            }
+            
+            if (dashboard) {
+                const computed = window.getComputedStyle(dashboard);
+                log('Dashboard display: ' + computed.display);
+                log('Dashboard position: ' + computed.position);
+            }
+        }
+        
+        log('Debug page loaded!', '#0ff');
+        log('You can press the buttons to test', '#0ff');
+        
+        // Show the dashboard (simulate login)
+        setTimeout(() => {
+            const dashboard = document.getElementById('admin-dashboard');
+            if (dashboard) {
+                dashboard.removeAttribute('style');
+                log('Dashboard shown after 1 second', '#ff0');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
