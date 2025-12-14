@@ -2,11 +2,28 @@ let currentUser = null;
 let allCategories = [];
 let allTags = [];
 let allProducts = [];
+let allOrders = [];
 let selectedCategoryIds = [];
 let selectedTagIds = [];
 let cropper = null;
 let productImages = [];
 let primaryImageIndex = 0;
+
+// Tab switching function
+function switchTab(tabName) {
+    document.querySelectorAll('.admin-menu-item').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+    
+    if (tabName === 'dashboard') loadDashboard();
+    if (tabName === 'categories') loadCategoriesTable();
+    if (tabName === 'tags') loadTagsTable();
+    if (tabName === 'orders') loadOrdersTable();
+    if (tabName === 'products') loadProductsTable();
+    if (tabName === 'customers') loadCustomersTable();
+    if (tabName === 'settings') loadSettings();
+}
 
 // Auth
 supabase.auth.getSession().then(({ data: { session } }) => {
@@ -27,7 +44,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         currentUser = data.user;
         showDashboard();
     } catch (error) {
-        document.getElementById('login-error').textContent = 'Invalid credentials';
+        document.getElementById('login-error').textContent = 'Invalid credentials: ' + error.message;
         document.getElementById('login-error').classList.add('show');
     }
 });
@@ -39,7 +56,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 
 function showDashboard() {
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-dashboard').style.display = 'block';
+    document.getElementById('admin-dashboard').style.display = 'grid';
     loadAll();
 }
 
@@ -47,7 +64,107 @@ async function loadAll() {
     await loadCategories();
     await loadTags();
     await loadProductsTable();
+    await loadOrdersTable();
+    await loadDashboard();
 }
+
+// ========== DASHBOARD ==========
+async function loadDashboard() {
+    try {
+        // Load all data
+        const [productsRes, ordersRes] = await Promise.all([
+            supabase.from('products').select('*'),
+            supabase.from('orders').select('*')
+        ]);
+        
+        const products = productsRes.data || [];
+        const orders = ordersRes.data || [];
+        
+        // Calculate metrics
+        const totalRevenue = orders.reduce((sum, o) => sum + parseFloat(o.total_price || 0), 0);
+        const totalOrders = orders.length;
+        const totalProducts = products.length;
+        const inStockProducts = products.filter(p => p.stock > 0 || p.track_inventory === false).length;
+        
+        // Get unique customers
+        const uniqueCustomers = new Set(orders.map(o => o.customer_email)).size;
+        
+        // This month stats
+        const now = new Date();
+        const thisMonthOrders = orders.filter(o => {
+            const orderDate = new Date(o.created_at);
+            return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+        });
+        const thisMonthRevenue = thisMonthOrders.reduce((sum, o) => sum + parseFloat(o.total_price || 0), 0);
+        
+        // Update metrics
+        document.getElementById('total-revenue').textContent = '$' + totalRevenue.toFixed(2);
+        document.getElementById('total-orders').textContent = totalOrders;
+        document.getElementById('total-products').textContent = totalProducts;
+        document.getElementById('total-customers').textContent = uniqueCustomers;
+        
+        document.getElementById('orders-change').textContent = `${thisMonthOrders.length} this month`;
+        document.getElementById('products-stock').textContent = `${inStockProducts} in stock`;
+        
+        // Update badge
+        document.getElementById('orders-badge').textContent = totalOrders;
+        
+        // Revenue change (simple version)
+        if (thisMonthRevenue > 0) {
+            document.getElementById('revenue-change').textContent = `$${thisMonthRevenue.toFixed(2)} this month`;
+        }
+        
+        // Recent orders
+        displayRecentOrders(orders.slice(0, 5));
+        
+        // Low stock alerts
+        displayLowStock(products.filter(p => p.stock > 0 && p.stock <= 5 && p.track_inventory !== false).slice(0, 5));
+        
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+    }
+}
+
+function displayRecentOrders(orders) {
+    const container = document.getElementById('recent-orders-list');
+    if (!orders || orders.length === 0) {
+        container.innerHTML = '<p class="empty-state">No orders yet</p>';
+        return;
+    }
+    
+    container.innerHTML = orders.map(order => `
+        <div class="list-item">
+            <div class="list-item-content">
+                <strong>${order.product_name}</strong>
+                <small>${order.customer_name} • $${parseFloat(order.total_price).toFixed(2)}</small>
+            </div>
+            <div class="list-item-meta">
+                <span class="status-badge status-${order.status}">${order.status}</span>
+                <small>${new Date(order.created_at).toLocaleDateString()}</small>
+            </div>
+        </div>
+    `).join('');
+}
+
+function displayLowStock(products) {
+    const container = document.getElementById('low-stock-list');
+    if (!products || products.length === 0) {
+        container.innerHTML = '<p class="empty-state" style="color: var(--success);">✓ All products well stocked</p>';
+        return;
+    }
+    
+    container.innerHTML = products.map(product => `
+        <div class="list-item">
+            <div class="list-item-content">
+                <strong>${product.name}</strong>
+                <small>Only ${product.stock} left in stock</small>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="editProduct(${product.id})">Restock</button>
+        </div>
+    `).join('');
+}
+
+document.getElementById('refresh-dashboard-btn')?.addEventListener('click', loadDashboard);
 
 // Character counters for SEO
 document.getElementById('seo-title')?.addEventListener('input', (e) => {
@@ -59,17 +176,10 @@ document.getElementById('seo-description')?.addEventListener('input', (e) => {
 });
 
 // Tabs
-document.querySelectorAll('.tab-btn').forEach(btn => {
+document.querySelectorAll('.admin-menu-item').forEach(btn => {
     btn.addEventListener('click', () => {
         const tab = btn.dataset.tab;
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.getElementById(`${tab}-tab`).classList.add('active');
-        
-        if (tab === 'categories') loadCategoriesTable();
-        if (tab === 'tags') loadTagsTable();
-        if (tab === 'orders') loadOrdersTable();
+        switchTab(tab);
     });
 });
 
@@ -149,7 +259,7 @@ async function saveCroppedImage() {
 function displayProductImages() {
     const preview = document.getElementById('images-preview');
     if (productImages.length === 0) {
-        preview.innerHTML = '<p style="color: var(--text-light);">No images yet. Upload one above.</p>';
+        preview.innerHTML = '<p style="color: var(--text-light);">No images yet.</p>';
         return;
     }
     
@@ -191,7 +301,7 @@ function closeImageEditor() {
     }
 }
 
-// CATEGORIES - Add/Remove System
+// CATEGORIES
 async function loadCategories() {
     const { data } = await supabase.from('categories').select('*').order('name');
     allCategories = data || [];
@@ -202,7 +312,7 @@ function populateCategorySelector() {
     const available = allCategories.filter(c => !selectedCategoryIds.includes(c.id));
     selector.innerHTML = available.map(c => 
         `<option value="${c.id}">${c.name}</option>`
-    ).join('') || '<option disabled>All categories added</option>';
+    ).join('') || '<option disabled>All added</option>';
 }
 
 function displaySelectedCategories() {
@@ -242,7 +352,7 @@ function removeCategory(id) {
     displaySelectedCategories();
 }
 
-// TAGS - Add/Remove System
+// TAGS
 async function loadTags() {
     const { data } = await supabase.from('tags').select('*').order('name');
     allTags = data || [];
@@ -253,7 +363,7 @@ function populateTagSelector() {
     const available = allTags.filter(t => !selectedTagIds.includes(t.id));
     selector.innerHTML = available.map(t => 
         `<option value="${t.id}">${t.name}</option>`
-    ).join('') || '<option disabled>All tags added</option>';
+    ).join('') || '<option disabled>All added</option>';
 }
 
 function displaySelectedTags() {
@@ -626,8 +736,6 @@ function closeProductModal() {
 }
 
 // ========== ORDERS ==========
-let allOrders = [];
-
 async function loadOrdersTable() {
     try {
         const { data, error } = await supabase
@@ -680,7 +788,6 @@ function displayOrders() {
         return;
     }
     
-    // Calculate total revenue
     const totalRevenue = filtered.reduce((sum, order) => sum + parseFloat(order.total_price), 0);
     
     table.innerHTML = `
@@ -717,6 +824,7 @@ function displayOrders() {
                             <td>
                                 <strong>${order.customer_name}</strong><br>
                                 <small>${order.customer_email}</small>
+                                ${order.customer_phone ? `<br><small>📞 ${order.customer_phone}</small>` : ''}
                             </td>
                             <td>
                                 <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -744,7 +852,7 @@ function viewOrderDetails(orderId) {
     
     const address = order.shipping_address || {};
     const addressText = address.line1 ? 
-        `${address.line1}${address.line2 ? ', ' + address.line2 : ''}<br>${address.city}, ${address.state} ${address.postal_code}<br>${address.country}` :
+        `${address.name || order.shipping_name || order.customer_name}<br>${address.line1}${address.line2 ? ', ' + address.line2 : ''}<br>${address.city}, ${address.state} ${address.postal_code}<br>${address.country}` :
         'No address provided';
     
     const modal = document.createElement('div');
@@ -759,7 +867,8 @@ function viewOrderDetails(orderId) {
                     <h3>Customer Information</h3>
                     <p><strong>Name:</strong> ${order.customer_name}</p>
                     <p><strong>Email:</strong> ${order.customer_email}</p>
-                    <p><strong>Shipping Address:</strong><br>${addressText}</p>
+                    <p><strong>Phone:</strong> ${order.customer_phone || 'Not provided'}</p>
+                    <p><strong>Shipping To:</strong><br>${addressText}</p>
                 </div>
                 <div class="order-section">
                     <h3>Order Details</h3>
@@ -773,10 +882,12 @@ function viewOrderDetails(orderId) {
                     <h3>Payment Info</h3>
                     <p><strong>Stripe Session:</strong> <code>${order.stripe_session_id}</code></p>
                     <p><strong>Payment Intent:</strong> <code>${order.stripe_payment_intent || 'N/A'}</code></p>
+                    ${order.stripe_customer_id ? `<p><strong>Customer ID:</strong> <code>${order.stripe_customer_id}</code></p>` : ''}
                 </div>
             </div>
             <div class="form-actions">
                 <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Close</button>
+                ${order.stripe_payment_intent ? `<button class="btn btn-primary" onclick="window.open('https://dashboard.stripe.com/payments/${order.stripe_payment_intent}', '_blank')">View in Stripe</button>` : ''}
             </div>
         </div>
     `;
@@ -786,6 +897,73 @@ function viewOrderDetails(orderId) {
 document.getElementById('order-search')?.addEventListener('input', displayOrders);
 document.getElementById('order-date-filter')?.addEventListener('change', displayOrders);
 
+// ========== CUSTOMERS ==========
+async function loadCustomersTable() {
+    if (allOrders.length === 0) {
+        await loadOrdersTable();
+    }
+    
+    // Get unique customers
+    const customersMap = new Map();
+    allOrders.forEach(order => {
+        if (!customersMap.has(order.customer_email)) {
+            customersMap.set(order.customer_email, {
+                name: order.customer_name,
+                email: order.customer_email,
+                phone: order.customer_phone,
+                totalOrders: 0,
+                totalSpent: 0,
+                lastOrder: order.created_at
+            });
+        }
+        const customer = customersMap.get(order.customer_email);
+        customer.totalOrders++;
+        customer.totalSpent += parseFloat(order.total_price || 0);
+        if (new Date(order.created_at) > new Date(customer.lastOrder)) {
+            customer.lastOrder = order.created_at;
+        }
+    });
+    
+    const customers = Array.from(customersMap.values());
+    
+    const table = document.getElementById('customers-table');
+    
+    if (customers.length === 0) {
+        table.innerHTML = '<p style="padding: 3rem; text-align: center;">No customers yet</p>';
+        return;
+    }
+    
+    table.innerHTML = `<div class="products-table"><table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Orders</th>
+                <th>Total Spent</th>
+                <th>Last Order</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${customers.map(c => `
+                <tr>
+                    <td><strong>${c.name}</strong></td>
+                    <td>${c.email}</td>
+                    <td>${c.phone || 'N/A'}</td>
+                    <td>${c.totalOrders}</td>
+                    <td>$${c.totalSpent.toFixed(2)}</td>
+                    <td>${new Date(c.lastOrder).toLocaleDateString()}</td>
+                </tr>
+            `).join('')}
+        </tbody>
+    </table></div>`;
+}
+
+// ========== SETTINGS ==========
+function loadSettings() {
+    document.getElementById('store-url').textContent = window.location.origin;
+    document.getElementById('admin-email-display').textContent = currentUser?.email || '-';
+}
 
 // REFRESH BUTTONS
 document.getElementById('refresh-products-btn')?.addEventListener('click', async () => {

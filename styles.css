@@ -1011,6 +1011,10 @@ body {
     display: none;
 }
 
+.error-message:not(:empty) {
+    display: block;
+}
+
 .error-message.show {
     display: block;
 }
@@ -1699,5 +1703,207 @@ body {
     
     .nav-links a {
         font-size: 0.9375rem;
+    }
+}
+
+/* ========================================
+   ENHANCED ADMIN DASHBOARD STYLES
+   ======================================== */
+
+/* Sidebar Header */
+.sidebar-header {
+    padding: 0 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+}
+
+/* Badge for menu items */
+.admin-menu-item .badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: white;
+    padding: 0.125rem 0.5rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Dashboard Metrics Grid */
+.dashboard-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    display: flex;
+    gap: 1.25rem;
+    transition: var(--transition);
+}
+
+.metric-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow);
+}
+
+.metric-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.metric-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.metric-info {
+    flex: 1;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 0.25rem;
+}
+
+.metric-change {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+}
+
+.metric-change.positive {
+    color: var(--success);
+}
+
+.metric-change.negative {
+    color: var(--error);
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.dashboard-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.card-header h3 {
+    font-size: 1.125rem;
+    color: var(--primary-dark);
+}
+
+/* List Items for Dashboard */
+.list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.list-item:last-child {
+    border-bottom: none;
+}
+
+.list-item:hover {
+    background: var(--bg);
+}
+
+.list-item-content {
+    flex: 1;
+}
+
+.list-item-content strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--text);
+}
+
+.list-item-content small {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.list-item-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.list-item-meta small {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+}
+
+/* Settings Grid */
+.settings-grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.setting-item {
+    padding: 1rem;
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.setting-item strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--primary-dark);
+    font-size: 0.9375rem;
+}
+
+.setting-item p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Responsive Dashboard */
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-metrics {
+        grid-template-columns: 1fr;
     }
 }
