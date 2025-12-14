@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Inspector - Orders</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 2rem;
+            background: #1a1a1a;
+            color: #0f0;
+        }
+        h1 { color: #0ff; }
+        .order {
+            background: #000;
+            border: 2px solid #0f0;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .field {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: #0a0a0a;
+        }
+        .label {
+            color: #ff0;
+            font-weight: bold;
+        }
+        .value {
+            color: #0f0;
+        }
+        .null {
+            color: #f00;
+        }
+        .json {
+            color: #0ff;
+            white-space: pre-wrap;
+            margin-left: 1rem;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        button:hover {
+            background: #0ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 DATABASE INSPECTOR - ORDERS TABLE</h1>
+    <p style="color: #ff0;">This will show you EXACTLY what's in your orders table</p>
+    
+    <button onclick="loadOrders()">Load Orders from Database</button>
+    
+    <div id="output"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script>
+        async function loadOrders() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p style="color: #ff0;">Loading...</p>';
+            
+            try {
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    output.innerHTML = `<p class="null">ERROR: ${error.message}</p>`;
+                    return;
+                }
+                
+                if (!data || data.length === 0) {
+                    output.innerHTML = '<p class="null">No orders found in database!</p>';
+                    return;
+                }
+                
+                output.innerHTML = `<h2>${data.length} Orders Found</h2>`;
+                
+                data.forEach((order, index) => {
+                    const orderDiv = document.createElement('div');
+                    orderDiv.className = 'order';
+                    
+                    orderDiv.innerHTML = `
+                        <h3>Order #${order.id} (${index + 1} of ${data.length})</h3>
+                        
+                        <div class="field">
+                            <span class="label">Created:</span>
+                            <span class="value">${new Date(order.created_at).toLocaleString()}</span>
+                        </div>
+                        
+                        <div class="field">
+                            <span class="label">Customer Name:</span>
+                            <span class="${order.customer_name ? 'value' : 'null'}">
+                                ${order.customer_name || 'NULL'}
+                            </span>
+                        </div>
+                        
+                        <div class="field">
+                            <span class="label">Customer Email:</span>
+                            <span class="${order.customer_email ? 'value' : 'null'}">
+                                ${order.customer_email || 'NULL'}
+                            </span>
+                        </div>
+                        
+                        <div class="field">
+                            <span class="label">Customer Phone:</span>
+                            <span class="${order.customer_phone ? 'value' : 'null'}">
+                                ${order.customer_phone || 'NULL - NOT COLLECTED'}
+                            </span>
+                        </div>
+                        
+                        <div class="field">
+                            <span class="label">Shipping Name:</span>
+                            <span class="${order.shipping_name ? 'value' : 'null'}">
+                                ${order.shipping_name || 'NULL'}
+                            </span>
+                        </div>
+                        
+                        <div class="field">
+                            <span class="label">Shipping Address (JSON):</span>
+                            ${order.shipping_address ? 
+                                `<div class="json">${JSON.stringify(order.shipping_address, null, 2)}</div>` :
+                                '<span class="null">NULL - NO ADDRESS COLLECTED!</span>'
+                            }
+                        </div>
+                        
+                        <div class="field">
+                            <span class="label">Product:</span>
+                            <span class="value">${order.product_name}</span>
+                        </div>
+                        
+                        <div class="field">
+                            <span class="label">Total:</span>
+                            <span class="value">$${parseFloat(order.total_price).toFixed(2)}</span>
+                        </div>
+                        
+                        <div class="field">
+                            <span class="label">Status:</span>
+                            <span class="value">${order.status}</span>
+                        </div>
+                        
+                        <div class="field">
+                            <span class="label">Stripe Session ID:</span>
+                            <span class="value">${order.stripe_session_id}</span>
+                        </div>
+                    `;
+                    
+                    output.appendChild(orderDiv);
+                });
+                
+                // Summary
+                const withAddress = data.filter(o => o.shipping_address && o.shipping_address.line1).length;
+                const withPhone = data.filter(o => o.customer_phone).length;
+                
+                const summary = document.createElement('div');
+                summary.style.cssText = 'margin-top: 2rem; padding: 2rem; background: #000; border: 3px solid #ff0;';
+                summary.innerHTML = `
+                    <h2 style="color: #ff0;">SUMMARY</h2>
+                    <p><strong>Total Orders:</strong> ${data.length}</p>
+                    <p><strong>Orders with Shipping Address:</strong> ${withAddress} (${Math.round(withAddress/data.length*100)}%)</p>
+                    <p><strong>Orders with Phone Number:</strong> ${withPhone} (${Math.round(withPhone/data.length*100)}%)</p>
+                    
+                    ${withAddress === 0 ? '<p class="null" style="font-size: 1.2rem; margin-top: 1rem;">⚠️ NO ORDERS HAVE SHIPPING ADDRESSES! Your Stripe checkout is not collecting them!</p>' : ''}
+                    
+                    ${withPhone === 0 ? '<p class="null" style="font-size: 1.2rem;">⚠️ NO ORDERS HAVE PHONE NUMBERS! Your Stripe checkout is not collecting them!</p>' : ''}
+                `;
+                output.appendChild(summary);
+                
+            } catch (err) {
+                output.innerHTML = `<p class="null">EXCEPTION: ${err.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

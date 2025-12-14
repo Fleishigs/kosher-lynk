@@ -959,14 +959,28 @@ async function loadCustomersTable() {
         await loadOrdersTable();
     }
     
+    console.log('📊 Total orders:', allOrders.length);
+    
     // Get unique customers with complete info
     const customersMap = new Map();
-    allOrders.forEach(order => {
+    allOrders.forEach((order, index) => {
+        console.log(`Order ${index}:`, {
+            email: order.customer_email,
+            name: order.customer_name,
+            phone: order.customer_phone,
+            shipping_address: order.shipping_address,
+            shipping_name: order.shipping_name
+        });
+        
         if (!customersMap.has(order.customer_email)) {
             const address = order.shipping_address || {};
+            console.log('Address object for', order.customer_email, ':', address);
+            
             const fullAddress = address.line1 ? 
                 `${address.line1}${address.line2 ? ', ' + address.line2 : ''}, ${address.city}, ${address.state} ${address.postal_code}, ${address.country}` :
                 'No address on file';
+            
+            console.log('Formatted address:', fullAddress);
             
             customersMap.set(order.customer_email, {
                 name: order.customer_name,
