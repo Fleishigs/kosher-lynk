@@ -9,12 +9,22 @@ let cropper = null;
 let productImages = [];
 let primaryImageIndex = 0;
 
+// Mobile menu toggle
+function toggleMobileMenu() {
+    const sidebar = document.getElementById('admin-sidebar');
+    sidebar.classList.toggle('mobile-open');
+}
+
 // Tab switching function
 function switchTab(tabName) {
     document.querySelectorAll('.admin-menu-item').forEach(btn => btn.classList.remove('active'));
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.getElementById(`${tabName}-tab`).classList.add('active');
+    
+    // Close mobile menu on tab switch
+    const sidebar = document.getElementById('admin-sidebar');
+    if (sidebar) sidebar.classList.remove('mobile-open');
     
     if (tabName === 'dashboard') loadDashboard();
     if (tabName === 'categories') loadCategoriesTable();
@@ -903,14 +913,20 @@ async function loadCustomersTable() {
         await loadOrdersTable();
     }
     
-    // Get unique customers
+    // Get unique customers with complete info
     const customersMap = new Map();
     allOrders.forEach(order => {
         if (!customersMap.has(order.customer_email)) {
+            const address = order.shipping_address || {};
+            const fullAddress = address.line1 ? 
+                `${address.line1}${address.line2 ? ', ' + address.line2 : ''}, ${address.city}, ${address.state} ${address.postal_code}, ${address.country}` :
+                'No address on file';
+            
             customersMap.set(order.customer_email, {
                 name: order.customer_name,
                 email: order.customer_email,
-                phone: order.customer_phone,
+                phone: order.customer_phone || 'Not provided',
+                address: fullAddress,
                 totalOrders: 0,
                 totalSpent: 0,
                 lastOrder: order.created_at
@@ -939,6 +955,7 @@ async function loadCustomersTable() {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
+                <th>Shipping Address</th>
                 <th>Orders</th>
                 <th>Total Spent</th>
                 <th>Last Order</th>
@@ -948,10 +965,11 @@ async function loadCustomersTable() {
             ${customers.map(c => `
                 <tr>
                     <td><strong>${c.name}</strong></td>
-                    <td>${c.email}</td>
-                    <td>${c.phone || 'N/A'}</td>
+                    <td><a href="mailto:${c.email}" style="color: var(--primary);">${c.email}</a></td>
+                    <td><a href="tel:${c.phone}" style="color: var(--primary);">${c.phone}</a></td>
+                    <td style="max-width: 300px; line-height: 1.5;">${c.address}</td>
                     <td>${c.totalOrders}</td>
-                    <td>$${c.totalSpent.toFixed(2)}</td>
+                    <td><strong>$${c.totalSpent.toFixed(2)}</strong></td>
                     <td>${new Date(c.lastOrder).toLocaleDateString()}</td>
                 </tr>
             `).join('')}

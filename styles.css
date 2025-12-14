@@ -1907,3 +1907,107 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ========================================
+   MOBILE MENU FOR ADMIN
+   ======================================== */
+
+.mobile-menu-btn {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+.mobile-menu-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.mobile-menu-close {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.mobile-menu-close:hover {
+    background: var(--bg);
+}
+
+/* Mobile Responsive - Show menu button, hide sidebar by default */
+@media (max-width: 1024px) {
+    .mobile-menu-btn {
+        display: flex;
+    }
+    
+    .mobile-menu-close {
+        display: flex;
+    }
+    
+    .admin-dashboard {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        height: 100vh;
+        width: 260px;
+        z-index: 10000;
+        transition: left 0.3s ease;
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .admin-sidebar.mobile-open {
+        left: 0;
+    }
+    
+    .sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    /* Overlay when menu is open */
+    .admin-sidebar.mobile-open::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 260px;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: -1;
+    }
+}
+
+/* Make customer table scrollable on mobile */
+@media (max-width: 768px) {
+    .products-table {
+        overflow-x: auto;
+    }
+    
+    .products-table table {
+        min-width: 800px;
+    }
+}
