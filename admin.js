@@ -12,8 +12,30 @@ let primaryImageIndex = 0;
 // Mobile menu toggle
 function toggleMobileMenu() {
     const sidebar = document.getElementById('admin-sidebar');
-    sidebar.classList.toggle('mobile-open');
+    if (sidebar) {
+        const isOpen = sidebar.classList.toggle('mobile-open');
+        // Toggle body class for overlay
+        if (isOpen) {
+            document.body.classList.add('menu-open');
+        } else {
+            document.body.classList.remove('menu-open');
+        }
+    }
 }
+
+// Close mobile menu when clicking overlay
+document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('admin-sidebar');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    
+    if (sidebar && sidebar.classList.contains('mobile-open')) {
+        // Check if click is outside sidebar and not on menu button
+        if (!sidebar.contains(e.target) && e.target !== menuBtn && !menuBtn?.contains(e.target)) {
+            sidebar.classList.remove('mobile-open');
+            document.body.classList.remove('menu-open');
+        }
+    }
+});
 
 // Tab switching function
 function switchTab(tabName) {
@@ -24,7 +46,10 @@ function switchTab(tabName) {
     
     // Close mobile menu on tab switch
     const sidebar = document.getElementById('admin-sidebar');
-    if (sidebar) sidebar.classList.remove('mobile-open');
+    if (sidebar) {
+        sidebar.classList.remove('mobile-open');
+        document.body.classList.remove('menu-open');
+    }
     
     if (tabName === 'dashboard') loadDashboard();
     if (tabName === 'categories') loadCategoriesTable();

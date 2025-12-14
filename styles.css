@@ -1926,6 +1926,8 @@ body {
     cursor: pointer;
     margin-bottom: 1.5rem;
     box-shadow: var(--shadow);
+    position: relative;
+    z-index: 1;
 }
 
 .mobile-menu-btn svg {
@@ -1969,17 +1971,19 @@ body {
     
     .admin-sidebar {
         position: fixed;
-        left: -280px;
+        left: -100%;
         top: 0;
         height: 100vh;
-        width: 260px;
-        z-index: 10000;
+        width: 280px;
+        z-index: 9999;
         transition: left 0.3s ease;
-        box-shadow: var(--shadow-xl);
+        box-shadow: none;
+        overflow-y: auto;
     }
     
     .admin-sidebar.mobile-open {
         left: 0;
+        box-shadow: var(--shadow-xl);
     }
     
     .sidebar-header {
@@ -1988,16 +1992,29 @@ body {
         justify-content: space-between;
     }
     
-    /* Overlay when menu is open */
-    .admin-sidebar.mobile-open::before {
+    /* Dark overlay when menu is open */
+    body::after {
         content: '';
         position: fixed;
         top: 0;
-        left: 260px;
+        left: 0;
         right: 0;
         bottom: 0;
         background: rgba(0,0,0,0.5);
-        z-index: -1;
+        z-index: 9998;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    
+    body.menu-open::after {
+        opacity: 1;
+        pointer-events: all;
+    }
+    
+    .admin-content {
+        position: relative;
+        z-index: 1;
     }
 }
 
