@@ -65,11 +65,24 @@ exports.handler = async (event) => {
         console.log(`Product ${productId}: Unlimited stock (track_inventory disabled)`);
       }
 
-      // Save order to database (only if orders table exists)
+      // Get detailed shipping information
+      const shippingDetails = session.shipping_details || session.shipping || {};
+      const customerDetails = session.customer_details || {};
+      
+      // Build complete shipping address
+      const shippingAddress = shippingDetails.address || {};
+      const fullShippingInfo = {
+        name: shippingDetails.name || customerDetails.name || 'N/A',
+        line1: shippingAddress.line1 || '',
+        line2: shippingAddress.line2 || '',
+        city: shippingAddress.city || '',
+        state: shippingAddress.state || '',
+        postal_code: shippingAddress.postal_code || '',
+        country: shippingAddress.country || '',
+      };
+      
+      // Save complete order to database
       try {
-        const customerDetails = session.customer_details || {};
-        const shippingAddress = customerDetails.address || {};
-        
         const orderData = {
           product_id: parseInt(productId),
           product_name: product.name,
@@ -77,19 +90,43 @@ exports.handler = async (event) => {
           product_image: product.images && product.images.length > 0 ? product.images[0] : product.image_url,
           quantity: 1,
           total_price: session.amount_total / 100,
+          
+          // Customer Contact Info
           customer_email: customerDetails.email || session.customer_email || 'unknown@email.com',
-          customer_name: customerDetails.name || 'Guest',
-          shipping_address: shippingAddress,
+          customer_name: customerDetails.name || shippingDetails.name || 'Guest',
+          customer_phone: customerDetails.phone || session.customer_details?.phone || 'N/A',
+          
+          // Complete Shipping Address
+          shipping_address: fullShippingInfo,
+          shipping_name: shippingDetails.name || customerDetails.name || 'N/A',
+          
+          // Payment Info
           stripe_session_id: session.id,
           stripe_payment_intent: session.payment_intent,
-          status: 'completed'
+          stripe_customer_id: session.customer,
+          
+          status: 'completed',
+          
+          // Metadata for future reference
+          metadata: {
+            checkout_session_url: session.url,
+            payment_status: session.payment_status,
+            amount_subtotal: session.amount_subtotal / 100,
+            amount_total: session.amount_total / 100,
+            currency: session.currency,
+          }
         };
 
-        await supabase.from('orders').insert([orderData]);
-        console.log(`Order saved for product ${productId}`);
+        const { error: orderError } = await supabase.from('orders').insert([orderData]);
+        
+        if (orderError) {
+          console.error('Error saving order:', orderError);
+        } else {
+          console.log(`Order saved successfully for product ${productId}`);
+          console.log(`Shipping to: ${fullShippingInfo.name}, ${fullShippingInfo.line1}, ${fullShippingInfo.city}`);
+        }
       } catch (orderError) {
         console.error('Error saving order:', orderError.message);
-        // Don't fail webhook if orders table doesn't exist
       }
     } catch (error) {
       console.error('Error updating stock:', error);

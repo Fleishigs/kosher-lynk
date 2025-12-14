@@ -31,6 +31,16 @@ exports.handler = async (event) => {
         },
       ],
       mode: 'payment',
+      // Collect shipping address - IMPORTANT FOR ORDERS
+      shipping_address_collection: {
+        allowed_countries: ['US', 'CA', 'GB', 'IL', 'AU', 'DE', 'FR', 'IT', 'ES'], // Add countries you ship to
+      },
+      // Collect phone number - IMPORTANT FOR SHIPPING
+      phone_number_collection: {
+        enabled: true,
+      },
+      // Ensure we collect email
+      customer_creation: 'always',
       success_url: `${event.headers.origin || 'https://kosherlynk.netlify.app'}/success`,
       cancel_url: `${event.headers.origin || 'https://kosherlynk.netlify.app'}/products`,
       metadata: {
