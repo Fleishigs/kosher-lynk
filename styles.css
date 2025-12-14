@@ -1623,9 +1623,11 @@ body {
         grid-template-columns: 1fr;
     }
     
+    /* REMOVED - conflicts with mobile menu:
     .admin-sidebar {
         display: none;
     }
+    */
     
     .selector-container {
         grid-template-columns: 1fr;
