@@ -12,13 +12,14 @@ let primaryImageIndex = 0;
 // Mobile menu toggle
 function toggleMobileMenu() {
     const sidebar = document.getElementById('admin-sidebar');
-    if (sidebar) {
+    const dashboard = document.getElementById('admin-dashboard');
+    if (sidebar && dashboard) {
         const isOpen = sidebar.classList.toggle('mobile-open');
-        // Toggle body class for overlay
+        // Toggle dashboard class for overlay
         if (isOpen) {
-            document.body.classList.add('menu-open');
+            dashboard.classList.add('menu-open');
         } else {
-            document.body.classList.remove('menu-open');
+            dashboard.classList.remove('menu-open');
         }
     }
 }
@@ -26,13 +27,14 @@ function toggleMobileMenu() {
 // Close mobile menu when clicking overlay
 document.addEventListener('click', (e) => {
     const sidebar = document.getElementById('admin-sidebar');
+    const dashboard = document.getElementById('admin-dashboard');
     const menuBtn = document.querySelector('.mobile-menu-btn');
     
     if (sidebar && sidebar.classList.contains('mobile-open')) {
         // Check if click is outside sidebar and not on menu button
         if (!sidebar.contains(e.target) && e.target !== menuBtn && !menuBtn?.contains(e.target)) {
             sidebar.classList.remove('mobile-open');
-            document.body.classList.remove('menu-open');
+            if (dashboard) dashboard.classList.remove('menu-open');
         }
     }
 });
@@ -46,9 +48,12 @@ function switchTab(tabName) {
     
     // Close mobile menu on tab switch
     const sidebar = document.getElementById('admin-sidebar');
+    const dashboard = document.getElementById('admin-dashboard');
     if (sidebar) {
         sidebar.classList.remove('mobile-open');
-        document.body.classList.remove('menu-open');
+    }
+    if (dashboard) {
+        dashboard.classList.remove('menu-open');
     }
     
     if (tabName === 'dashboard') loadDashboard();
